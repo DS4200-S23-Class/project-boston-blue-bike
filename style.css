@@ -1,7 +1,38 @@
+html,
 body {
-    font-family: Arial;
+  height: 100%;
+  font-family: Arial;
 }
 
 h1 {
-    text-align: center;
+  text-align: center;
+}
+
+#vis-container {
+  display: flex;
+}
+
+#boston-map {
+  height: 98vh;
+  width: 50%;
+  border: 1px solid black;
+  margin: auto;
+}
+
+.info-col {
+  width: 50%;
+}
+
+#day-container {
+  height: 25vh;
+}
+
+#tooltip {
+  z-index: 100;
+  position: absolute;
+  background-color: grey;
+  border: solid;
+  border-width: 2px;
+  border-radius: 5px;
+  padding: 5px;
 }
