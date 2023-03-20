@@ -1,39 +1,41 @@
 <!DOCTYPE html>
-<html> 
-
-<head>
-    <meta charset=utf-8/>
-    <link rel="stylesheet" type="text/css" href="style.css">
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script src="js/d3.v6.1.1/d3.min.js"></script>
 
     <title>TODO: Add short title here</title>
-</head>
+  </head>
 
-
-<body>
-
+  <body>
     <h1>TODO: Add project title here</h1>
 
     <div>
-        <h2>Motivation</h2>
-        TODO: Add motivation / use case here 
+      <h2>Motivation</h2>
+      TODO: Add motivation / use case here
     </div>
 
     <div>
-        <h2>Background</h2>
-        TODO: Add link to report, demo video, link to data etc. here  
+      <h2>Background</h2>
+      TODO: Add link to report, demo video, link to data etc. here
     </div>
 
     <div>
-        <h2>Visualization</h2>
-        TODO: Build your visualization tool here  
+      <h2>Visualization</h2>
+      <div id="vis-container">
+        <div id="boston-map"></div>
+        <div class="info-col">
+          <div id="day-container"></div>
+          <div id="region2"><p>Test</p></div>
+        </div>
+      </div>
     </div>
 
     <div>
-        <h2>Acknowledgements</h2>
-        TODO: Cite resources used here   
+      <h2>Acknowledgements</h2>
+      TODO: Cite resources used here
     </div>
-
-
-</body>
-
+  </body>
+  <script src="js/main.js" type="module"></script>
 </html>
