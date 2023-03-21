@@ -184,7 +184,6 @@ async function characterizeBlueBikeStations(days) {
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
     .selectAll("circle")
-    .on("mouseenter", null)
     .on("mouseenter", mouseEnterStationHandler)
     .on("mouseleave", mouseLeaveStationHandler)
     .transition()
