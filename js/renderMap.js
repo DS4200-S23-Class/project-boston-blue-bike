@@ -168,10 +168,25 @@ async function characterizeBlueBikeStations(days) {
         .attr("x2", c.projectedLongitude - offsetX)
         .attr("y2", c.projectedLatitude - offsetY);
     });
+
+    // Add tooltip
+    d3.select("#tooltip").style("opacity", 1);
   };
 
   const mouseLeaveStationHandler = (_e, _d) => {
     clearConnectionsContainer();
+    d3.select("#tooltip")
+      .style("opacity", 0)
+      .style("left", `0`)
+      .style("top", `0`);
+  };
+
+  const mouseMoveStationHandler = (e, d) => {
+    // position the tooltip and fill in information
+    d3.select("#tooltip")
+      .html(`${d.name} Total trips: ${d["count"]}`)
+      .style("left", `${e.pageX}px`)
+      .style("top", `${e.pageY - 50}px`);
   };
 
   const MAX_TRIPS =
@@ -184,25 +199,33 @@ async function characterizeBlueBikeStations(days) {
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
     .selectAll("circle")
-    .on("mouseenter", mouseEnterStationHandler)
-    .on("mouseleave", mouseLeaveStationHandler)
-    .transition()
-    .duration(200)
-    .attr("fill", (d) =>
-      color(
+    .each((d) => {
+      d["count"] =
         !!days && days.length > 0
           ? days.reduce(
               (total, day) => total + parseInt(d[`${day}_total_trips`]),
               0
             )
-          : d.total_trips
-      )
-    );
+          : d.total_trips;
+    })
+    .on("mouseenter", mouseEnterStationHandler)
+    .on("mouseleave", mouseLeaveStationHandler)
+    .on("mousemove", mouseMoveStationHandler)
+    .transition()
+    .duration(200)
+    .attr("fill", (d) => color(d["count"]));
 }
 
 function clearConnectionsContainer() {
   const connectionContainer = d3.select('g[data-container="connections"]');
   connectionContainer.selectAll("line").remove();
+}
+
+function renderToolTip() {
+  d3.select("#boston-map")
+    .append("div")
+    .attr("id", "tooltip")
+    .style("opacity", 0);
 }
 
 // Draw neighborhoods of Boston
@@ -211,6 +234,7 @@ const renderMap = () => {
   renderBlueBikeStationsContainer();
   renderBlueBikeStations(GLOBAL_K);
   characterizeBlueBikeStations([]);
+  renderToolTip();
 };
 
 export default renderMap;
