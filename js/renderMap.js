@@ -43,9 +43,9 @@ const zoomHandler = (e) => {
 const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
 
 // --------------- Prep Map container ---------------
-d3.select("#boston-map").on("selectday", async (e) => {
-  await clearBlueBikeStations();
-  renderBlueBikeStations(GLOBAL_K, e.detail.days);
+d3.select("#boston-map").on("selectday", (e) => {
+  clearConnectionsContainer();
+  characterizeBlueBikeStations(e.detail.days);
 });
 
 // --------------- Prep SVG ---------------
@@ -111,8 +111,20 @@ function renderBlueBikeStationsContainer() {
   g.append("g").attr("data-container", "connections");
 }
 
-// Actually render the blue bike staions, takes the scale to render at and the specific days to render
-async function renderBlueBikeStations(scaleValue, days) {
+function renderBlueBikeStations(scaleValue) {
+  const stationContainer = d3.select('g[data-container="stations"]');
+  stationContainer
+    .selectAll("circle")
+    .data(projectedStations)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => d.projectedLongitude)
+    .attr("cy", (d) => d.projectedLatitude)
+    .attr("data-station-name", (d) => d.name)
+    .attr("r", scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE));
+}
+
+async function characterizeBlueBikeStations(days) {
   // Retrieve the proper matrix based on the days input
   // Matrix is formatted such that the row is the "from" station, column is the "to" station
   const matrix =
@@ -159,8 +171,7 @@ async function renderBlueBikeStations(scaleValue, days) {
   };
 
   const mouseLeaveStationHandler = (_e, _d) => {
-    const connectionContainer = d3.select('g[data-container="connections"]');
-    connectionContainer.selectAll("line").remove();
+    clearConnectionsContainer();
   };
 
   const MAX_TRIPS =
@@ -173,12 +184,11 @@ async function renderBlueBikeStations(scaleValue, days) {
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
     .selectAll("circle")
-    .data(projectedStations)
-    .enter()
-    .append("circle")
-    .attr("cx", (d) => d.projectedLongitude)
-    .attr("cy", (d) => d.projectedLatitude)
-    .attr("data-station-name", (d) => d.name)
+    .on("mouseenter", null)
+    .on("mouseenter", mouseEnterStationHandler)
+    .on("mouseleave", mouseLeaveStationHandler)
+    .transition()
+    .duration(200)
     .attr("fill", (d) =>
       color(
         !!days && days.length > 0
@@ -188,34 +198,20 @@ async function renderBlueBikeStations(scaleValue, days) {
             )
           : d.total_trips
       )
-    )
-    .on("mouseenter", mouseEnterStationHandler)
-    .on("mouseleave", mouseLeaveStationHandler)
-    .transition()
-    .duration(300)
-    .attr("r", scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE));
+    );
 }
 
-function clearBlueBikeStations() {
-  // We remove all the station circles, wrap in a promise in case we want actions dependant on removal
-  const p = new Promise((resolve) => {
-    d3.select('g[data-container="stations"]')
-      .selectAll("circle")
-      .transition()
-      .duration(150)
-      .attr("r", 0)
-      .transition()
-      .remove()
-      .on("end", () => resolve());
-  });
-  return p;
+function clearConnectionsContainer() {
+  const connectionContainer = d3.select('g[data-container="connections"]');
+  connectionContainer.selectAll("line").remove();
 }
 
 // Draw neighborhoods of Boston
 const renderMap = () => {
   renderBostonRegions();
   renderBlueBikeStationsContainer();
-  renderBlueBikeStations(GLOBAL_K, []);
+  renderBlueBikeStations(GLOBAL_K);
+  characterizeBlueBikeStations([]);
 };
 
 export default renderMap;
