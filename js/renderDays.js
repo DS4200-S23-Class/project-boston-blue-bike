@@ -39,6 +39,7 @@ const renderDays = () => {
       .attr("stroke", "green")
       .attr("stroke-width", 0)
       .attr("fill", color(tripsByDay.get(i)))
+      .style("cursor", "pointer")
       .on("click", (e) => {
         const rect = e.target;
         if (selectedDays.includes(i)) {
