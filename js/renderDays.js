@@ -27,7 +27,7 @@ const renderDays = () => {
     d3.select("#boston-map").dispatch("selectday", {
       detail: { days: selectedDays },
     });
-  });
+  }, 500);
 
   DAYS.forEach((day, index) => {
     svg
