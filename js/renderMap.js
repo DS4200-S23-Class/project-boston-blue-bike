@@ -133,7 +133,10 @@ async function characterizeBlueBikeStations(days) {
       : await getTripMatrix("total");
 
   // Event handlers
-  const mouseEnterStationHandler = (_e, d) => {
+  const mouseEnterStationHandler = (e, d) => {
+    const stationNode = e.target;
+    stationNode.parentNode.appendChild(stationNode);
+
     // Find the row in the station matrix that corresponds to the highlighted station
     const stationIndex = matrix.findIndex(
       (_station) => _station["from_station"] === d.name
