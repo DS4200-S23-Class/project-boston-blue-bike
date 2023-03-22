@@ -21,6 +21,8 @@ const HEIGHT = window.innerHeight;
 const ZOOM_THRESHOLD = [1, 7];
 const MAX_STATION_SIZE = 3;
 const MIN_STATION_SIZE = 1.25;
+const MAX_STATION_BORDER = 1;
+const MIN_STATION_BORDER = 0.1;
 
 let GLOBAL_K = 1;
 
@@ -30,7 +32,11 @@ const debouncedStationResize = debounce((zoomScale) => {
     .selectAll("circle")
     .transition()
     .duration(300)
-    .attr("r", scaleZoom(zoomScale, MAX_STATION_SIZE, MIN_STATION_SIZE));
+    .attr("r", scaleZoom(zoomScale, MAX_STATION_SIZE, MIN_STATION_SIZE))
+    .attr(
+      "stroke-width",
+      scaleZoom(zoomScale, MAX_STATION_BORDER, MIN_STATION_BORDER)
+    );
 }, 400);
 
 const zoomHandler = (e) => {
@@ -103,7 +109,12 @@ function renderBlueBikeStations(scaleValue) {
     .attr("cx", (d) => d.projectedLongitude)
     .attr("cy", (d) => d.projectedLatitude)
     .attr("data-station-name", (d) => d.name)
-    .attr("r", scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE));
+    .attr("r", scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE))
+    .attr("stroke", "black")
+    .attr(
+      "stroke-width",
+      scaleZoom(scaleValue, MAX_STATION_BORDER, MIN_STATION_BORDER)
+    );
 }
 
 // Add the functionality to the stations (event handlers, color, etc.)
