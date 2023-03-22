@@ -11,8 +11,9 @@ import {
   calcOffset,
   maxColumn,
   findMaxX,
+  meanColumn,
+  createScale,
 } from "./utils.js";
-import { blueScale, coolScale } from "./colorScheme.js";
 
 // --------------- Constants ---------------
 const WIDTH = window.innerWidth;
@@ -20,8 +21,6 @@ const HEIGHT = window.innerHeight;
 const ZOOM_THRESHOLD = [1, 7];
 const MAX_STATION_SIZE = 3;
 const MIN_STATION_SIZE = 1.25;
-
-const HOVER_COLOR = "#d36f80";
 
 let GLOBAL_K = 1;
 
@@ -75,24 +74,6 @@ const projectedStations = projectCoordinates(
 const path = d3.geoPath().projection(projection);
 
 function renderBostonRegions() {
-  const color = d3.scaleOrdinal(blueScale);
-  // Event handlers
-  let resetColor = null;
-  const mouseEnterRegionHandler = (e, d) => {
-    const region = e.target;
-    resetColor = region.getAttribute("fill");
-    region.setAttribute("fill", HOVER_COLOR);
-
-    const regionName = d.properties.name;
-    const regionNameContainer = document.querySelector("#region-name");
-    regionNameContainer.innerHTML = `Selected Region: ${regionName}`;
-  };
-
-  const mouseLeaveRegionHandler = (e, _d) => {
-    const region = e.target;
-    region.setAttribute("fill", resetColor);
-  };
-
   // Draw regions of Boston area
   g.append("g")
     .selectAll("path")
@@ -100,7 +81,7 @@ function renderBostonRegions() {
     .enter()
     .append("path")
     .attr("d", path)
-    .attr("fill", (_d, i) => color(i))
+    .attr("fill", "#ddead1")
     .attr("stroke", "black")
     .attr("stroke-width", 0.5);
 }
@@ -111,6 +92,7 @@ function renderBlueBikeStationsContainer() {
   g.append("g").attr("data-container", "connections");
 }
 
+// Add the individual stations as circles
 function renderBlueBikeStations(scaleValue) {
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
@@ -124,6 +106,7 @@ function renderBlueBikeStations(scaleValue) {
     .attr("r", scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE));
 }
 
+// Add the functionality to the stations (event handlers, color, etc.)
 async function characterizeBlueBikeStations(days) {
   // Retrieve the proper matrix based on the days input
   // Matrix is formatted such that the row is the "from" station, column is the "to" station
@@ -192,12 +175,24 @@ async function characterizeBlueBikeStations(days) {
       .style("top", `${e.pageY - 50}px`);
   };
 
+  const MEAN_TRIPS =
+    !!days && days.length > 0
+      ? meanColumn(projectedStations, days)
+      : d3.mean(projectedStations, (d) => parseInt(d["total_trips"]));
+
   const MAX_TRIPS =
     !!days && days.length > 0
       ? maxColumn(projectedStations, days)
       : d3.max(projectedStations, (d) => parseInt(d["total_trips"]));
 
-  const color = d3.scaleQuantize().domain([0, MAX_TRIPS]).range(coolScale);
+  // const color = d3.scaleQuantize().domain([0, MAX_TRIPS]).range(coolScale);
+  const color = d3
+    .scaleLinear()
+    .domain([0, MEAN_TRIPS, MAX_TRIPS])
+    .range(["blue", "white", "red"]);
+
+  // Add gradient scale
+  createScale(svg, MEAN_TRIPS, MAX_TRIPS);
 
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer

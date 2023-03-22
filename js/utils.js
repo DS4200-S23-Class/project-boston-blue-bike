@@ -57,6 +57,19 @@ export const maxColumn = (data, cols) => {
   );
 };
 
+/**
+ * Find the mean value across multiple rows of columns
+ *
+ * @param {object} data The data to be parsed
+ * @param {string[]} cols The string we want to find the max value of
+ * @returns The mean (numerical) value of the column
+ */
+export const meanColumn = (data, cols) => {
+  return d3.mean(data, (d) =>
+    cols.reduce((total, col) => total + parseInt(d[`${col}_total_trips`]), 0)
+  );
+};
+
 export const findMaxX = (data, numMax, val) => {
   return Object.entries(data)
     .filter(
@@ -69,4 +82,98 @@ export const findMaxX = (data, numMax, val) => {
     )
     .slice(0, numMax)
     .map(([name, _count]) => name);
+};
+
+// Inspired by: https://gist.github.com/pnavarrc/20950640812489f13246
+export const createScale = (container, mean, max) => {
+  // Create the SVG element and set its dimensions.
+  const SVG_WIDTH = 400;
+  const SVG_HEIGHT = 60;
+  const PADDING = 15;
+
+  const RECT_WIDTH = SVG_WIDTH / 2;
+  const RECT_HEIGHT = SVG_HEIGHT / 2;
+
+  container.select('svg[data-container="scale"]').remove();
+
+  const svg = container
+    .append("svg")
+    .attr("width", SVG_WIDTH)
+    .attr("height", SVG_HEIGHT)
+    .attr("data-container", "scale");
+
+  // Create the svg:defs element and the main gradient definition.
+  const svgDefs = svg.append("defs");
+
+  const scaleRect = svgDefs.append("linearGradient").attr("id", "mainGradient");
+
+  // Create the stops of the main gradient. Stops for beginning, mean, max values.
+  // Mean stop is placed relative to the max
+  scaleRect.append("stop").attr("stop-color", "blue").attr("offset", "0");
+
+  scaleRect
+    .append("stop")
+    .attr("stop-color", "white")
+    .attr("offset", mean / max);
+
+  scaleRect.append("stop").attr("stop-color", "red").attr("offset", "1");
+
+  // Use the gradient to set the shape fill, via CSS.
+  svg
+    .append("rect")
+    .classed("filled", true)
+    .attr("x", PADDING)
+    .attr("y", PADDING)
+    .attr("width", RECT_WIDTH)
+    .attr("height", RECT_HEIGHT);
+
+  const labelContainer = svg.append("g").attr("data-container", "value-labels");
+
+  // Add key for beginning value
+  labelContainer
+    .append("line")
+    .attr("x1", PADDING)
+    .attr("y1", PADDING)
+    .attr("x2", PADDING)
+    .attr("y2", PADDING + 35)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2);
+
+  labelContainer
+    .append("text")
+    .html("0")
+    .attr("x", PADDING - 5)
+    .attr("y", PADDING + 45);
+
+  // Add key for mean value
+  labelContainer
+    .append("line")
+    .attr("x1", (mean / max) * RECT_WIDTH + PADDING)
+    .attr("y1", PADDING)
+    .attr("x2", (mean / max) * RECT_WIDTH + PADDING)
+    .attr("y2", PADDING + 35)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2);
+
+  labelContainer
+    .append("text")
+    .html(Math.round(mean))
+    .attr("x", (mean / max) * RECT_WIDTH + PADDING)
+    .attr("y", PADDING + 45);
+
+  // Add key for max value
+  labelContainer
+    .append("line")
+    .attr("x1", RECT_WIDTH + PADDING)
+    .attr("y1", PADDING)
+    .attr("x2", RECT_WIDTH + PADDING)
+    .attr("y2", PADDING + 35)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2);
+
+  labelContainer
+    .append("text")
+    .html(Math.round(max))
+    .attr("x", RECT_WIDTH + PADDING)
+    .attr("y", PADDING + 45);
 };

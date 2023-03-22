@@ -24,7 +24,7 @@ h1 {
 }
 
 #day-container {
-  height: 25vh;
+  height: 30vh;
 }
 
 #tooltip {
@@ -35,4 +35,8 @@ h1 {
   border-width: 2px;
   border-radius: 5px;
   padding: 5px;
+}
+
+.filled {
+  fill: url(#mainGradient);
 }
