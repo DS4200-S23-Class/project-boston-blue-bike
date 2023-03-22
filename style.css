@@ -40,3 +40,7 @@ h1 {
 .filled {
   fill: url(#mainGradient);
 }
+
+#textbox {
+  margin-right: 10%;
+}
