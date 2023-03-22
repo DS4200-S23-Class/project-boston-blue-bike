@@ -2,15 +2,16 @@ import { tripsByDay, getTripMatrix, getManyTripMatrices } from "./dataLoad.js";
 import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
-const MARGINS = { top: 25, right: 50, bottom: 25, left: 100 };
+const MARGINS = { top: 25, right: 50, bottom: 25, left: 5 };
 const HORIZONTAL_OFFSET = 50;
+const SQUARE_LENGTH = 30;
 const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
 // --------------- Prep SVG ---------------
 const svg = d3
   .select("#day-container")
   .append("svg")
-  .attr("width", "100%")
+  .attr("width", 7 * HORIZONTAL_OFFSET)
   .attr("height", "100%");
 
 const renderDays = () => {
@@ -53,8 +54,8 @@ const renderDays = () => {
       .append("rect")
       .attr("x", (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET + MARGINS.left)
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top)
-      .attr("width", 30)
-      .attr("height", 30)
+      .attr("width", SQUARE_LENGTH)
+      .attr("height", SQUARE_LENGTH)
       .attr("stroke", "black")
       .attr("stroke-width", 4)
       .attr("fill", color(tripsByDay.get(i)))

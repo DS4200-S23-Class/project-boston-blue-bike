@@ -24,7 +24,9 @@ h1 {
 }
 
 #day-container {
+  display: flex;
   height: 30vh;
+  justify-content: center;
 }
 
 #tooltip {
