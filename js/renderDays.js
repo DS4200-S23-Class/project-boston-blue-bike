@@ -1,5 +1,4 @@
 import { tripsByDay } from "./dataLoad.js";
-import { coolScale } from "./colorScheme.js";
 import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
@@ -16,11 +15,16 @@ const svg = d3
 
 const renderDays = () => {
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
+  let MEAN_TRIP_DAY = 0;
+  tripsByDay.forEach((val) => {
+    MEAN_TRIP_DAY += val;
+  });
+  MEAN_TRIP_DAY /= tripsByDay.size;
   const MIN_TRIP_DAY = Math.min(...tripsByDay.values());
   const color = d3
-    .scaleQuantize()
-    .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
-    .range(coolScale);
+    .scaleLinear()
+    .domain([MIN_TRIP_DAY, MEAN_TRIP_DAY, MAX_TRIP_DAY])
+    .range(["blue", "white", "red"]);
   const selectedDays = [];
 
   const selectDay = debounce(() => {
@@ -46,8 +50,8 @@ const renderDays = () => {
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top)
       .attr("width", 30)
       .attr("height", 30)
-      .attr("stroke", "green")
-      .attr("stroke-width", 0)
+      .attr("stroke", "black")
+      .attr("stroke-width", 4)
       .attr("fill", color(tripsByDay.get(i)))
       .style("cursor", "pointer")
       .on("click", (e) => {
@@ -57,10 +61,10 @@ const renderDays = () => {
             selectedDays.findIndex((_i) => i === _i),
             1
           );
-          rect.setAttribute("stroke-width", "0");
+          rect.setAttribute("stroke", "black");
         } else {
           selectedDays.push(i);
-          rect.setAttribute("stroke-width", "4");
+          rect.setAttribute("stroke", "lightgreen");
         }
         selectDay();
       });
