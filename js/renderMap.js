@@ -128,31 +128,7 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     const stationRow = stationMatrix[stationIndex];
     const mostTripStations = findMaxX(stationRow, 5, d.name);
 
-    // Get reference to the HTML container for connection SVGs
-    const connectionContainer = d3.select('g[data-container="connections"]');
-
-    // Render a connection for each of the most visited stations
-    mostTripStations.forEach((station) => {
-      const c = d3.select(`circle[data-station-name="${station}"]`).data()[0];
-      const { offsetX, offsetY } = calcOffset(
-        d.projectedLongitude,
-        d.projectedLatitude,
-        c.projectedLongitude,
-        c.projectedLatitude,
-        d3.select("circle").attr("r")
-      );
-      connectionContainer
-        .append("line")
-        .style("stroke", "black")
-        .attr("x1", d.projectedLongitude + offsetX)
-        .attr("y1", d.projectedLatitude + offsetY)
-        .attr("x2", d.projectedLongitude + offsetX)
-        .attr("y2", d.projectedLatitude + offsetY)
-        .transition()
-        .duration(200)
-        .attr("x2", c.projectedLongitude - offsetX)
-        .attr("y2", c.projectedLatitude - offsetY);
-    });
+    renderConnections(d, mostTripStations);
 
     // Add tooltip
     d3.select("#tooltip").style("opacity", 1);
@@ -184,7 +160,6 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
       ? maxColumn(projectedStations, days)
       : d3.max(projectedStations, (d) => parseInt(d["total_trips"]));
 
-  // const color = d3.scaleQuantize().domain([0, MAX_TRIPS]).range(coolScale);
   const color = d3
     .scaleLinear()
     .domain([0, MEAN_TRIPS, MAX_TRIPS])
@@ -213,7 +188,31 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     .attr("fill", (d) => color(d["count"]));
 }
 
-function renderConnections() {}
+export function renderConnections(startStation, endStations) {
+  const connectionContainer = d3.select('g[data-container="connections"]');
+
+  endStations.forEach((endStation) => {
+    const c = d3.select(`circle[data-station-name="${endStation}"]`).data()[0];
+    const { offsetX, offsetY } = calcOffset(
+      startStation.projectedLongitude,
+      startStation.projectedLatitude,
+      c.projectedLongitude,
+      c.projectedLatitude,
+      d3.select("circle").attr("r")
+    );
+    connectionContainer
+      .append("line")
+      .style("stroke", "black")
+      .attr("x1", startStation.projectedLongitude + offsetX)
+      .attr("y1", startStation.projectedLatitude + offsetY)
+      .attr("x2", startStation.projectedLongitude + offsetX)
+      .attr("y2", startStation.projectedLatitude + offsetY)
+      .transition()
+      .duration(200)
+      .attr("x2", c.projectedLongitude - offsetX)
+      .attr("y2", c.projectedLatitude - offsetY);
+  });
+}
 
 function clearConnectionsContainer() {
   const connectionContainer = d3.select('g[data-container="connections"]');
