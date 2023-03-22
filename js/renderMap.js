@@ -60,7 +60,7 @@ const g = svg.call(zoom).append("g");
 // Align projection
 const projection = d3
   .geoMercator()
-  .center([-71.0589, 42.3601])
+  .center([-71, 42.3601])
   .scale(90000)
   .translate([WIDTH / 4, HEIGHT / 2]);
 

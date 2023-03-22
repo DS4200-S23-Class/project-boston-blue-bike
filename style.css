@@ -10,6 +10,7 @@ h1 {
 
 #vis-container {
   display: flex;
+  margin: 0 15%;
 }
 
 #boston-map {
