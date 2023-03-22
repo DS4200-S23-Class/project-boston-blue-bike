@@ -1,4 +1,4 @@
-import { tripsByDay } from "./dataLoad.js";
+import { tripsByDay, getTripMatrix, getManyTripMatrices } from "./dataLoad.js";
 import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
@@ -27,9 +27,14 @@ const renderDays = () => {
     .range(["blue", "white", "red"]);
   const selectedDays = [];
 
-  const selectDay = debounce(() => {
+  const selectDay = debounce(async () => {
+    const matrix =
+      !!selectedDays && selectedDays.length > 0
+        ? await getManyTripMatrices(selectedDays)
+        : await getTripMatrix("total");
+
     d3.select("#boston-map").dispatch("selectday", {
-      detail: { days: selectedDays },
+      detail: { days: selectedDays, stationMatrix: matrix },
     });
   }, 500);
 

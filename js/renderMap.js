@@ -1,10 +1,5 @@
 import { projectCoordinates } from "./dataTransformation.js";
-import {
-  geoJson,
-  blueBikeStations,
-  getTripMatrix,
-  getManyTripMatrices,
-} from "./dataLoad.js";
+import { geoJson, blueBikeStations, getTripMatrix } from "./dataLoad.js";
 import {
   debounce,
   scaleZoom,
@@ -50,7 +45,7 @@ const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
 // --------------- Prep Map container ---------------
 d3.select("#boston-map").on("selectday", (e) => {
   clearConnectionsContainer();
-  characterizeBlueBikeStations(e.detail.days);
+  characterizeBlueBikeStations(e.detail.days, e.detail.stationMatrix);
 });
 
 // --------------- Prep SVG ---------------
@@ -118,26 +113,19 @@ function renderBlueBikeStations(scaleValue) {
 }
 
 // Add the functionality to the stations (event handlers, color, etc.)
-async function characterizeBlueBikeStations(days) {
-  // Retrieve the proper matrix based on the days input
-  // Matrix is formatted such that the row is the "from" station, column is the "to" station
-  const matrix =
-    !!days && days.length > 0
-      ? await getManyTripMatrices(days)
-      : await getTripMatrix("total");
-
+async function characterizeBlueBikeStations(days, stationMatrix) {
   // Event handlers
   const mouseEnterStationHandler = (e, d) => {
     const stationNode = e.target;
     stationNode.parentNode.appendChild(stationNode);
 
     // Find the row in the station matrix that corresponds to the highlighted station
-    const stationIndex = matrix.findIndex(
+    const stationIndex = stationMatrix.findIndex(
       (_station) => _station["from_station"] === d.name
     );
 
     // Get the corresponding row from the matrix and find the X most travelled to stations
-    const stationRow = matrix[stationIndex];
+    const stationRow = stationMatrix[stationIndex];
     const mostTripStations = findMaxX(stationRow, 5, d.name);
 
     // Get reference to the HTML container for connection SVGs
@@ -225,6 +213,8 @@ async function characterizeBlueBikeStations(days) {
     .attr("fill", (d) => color(d["count"]));
 }
 
+function renderConnections() {}
+
 function clearConnectionsContainer() {
   const connectionContainer = d3.select('g[data-container="connections"]');
   connectionContainer.selectAll("line").remove();
@@ -238,11 +228,11 @@ function renderToolTip() {
 }
 
 // Draw neighborhoods of Boston
-const renderMap = () => {
+const renderMap = async () => {
   renderBostonRegions();
   renderBlueBikeStationsContainer();
   renderBlueBikeStations(GLOBAL_K);
-  characterizeBlueBikeStations([]);
+  characterizeBlueBikeStations([], await getTripMatrix("total"));
   renderToolTip();
 };
 
