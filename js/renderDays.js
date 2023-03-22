@@ -3,7 +3,9 @@ import { coolScale } from "./colorScheme.js";
 import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
-const MARGINS = { top: 25, right: 50, bottom: 25, left: 50 };
+const MARGINS = { top: 25, right: 50, bottom: 25, left: 100 };
+const HORIZONTAL_OFFSET = 50;
+const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
 // --------------- Prep SVG ---------------
 const svg = d3
@@ -27,12 +29,20 @@ const renderDays = () => {
     });
   });
 
+  DAYS.forEach((day, index) => {
+    svg
+      .append("text")
+      .html(day)
+      .attr("x", index * HORIZONTAL_OFFSET + MARGINS.left + 5)
+      .attr("y", 20);
+  });
+
   // Add rectangle to represent each day
   for (let i = 1; i < 31; i++) {
     let numericalDayOfWeek = i + 3;
     svg
       .append("rect")
-      .attr("x", (numericalDayOfWeek % 7) * 50 + MARGINS.left)
+      .attr("x", (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET + MARGINS.left)
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top)
       .attr("width", 30)
       .attr("height", 30)
