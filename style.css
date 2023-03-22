@@ -41,6 +41,7 @@ h1 {
   fill: url(#mainGradient);
 }
 
-#textbox {
-  margin-right: 10%;
+.textbox {
+  margin: auto;
+  max-width: 900px;
 }
