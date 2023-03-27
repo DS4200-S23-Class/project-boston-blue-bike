@@ -70,7 +70,7 @@ export const meanColumn = (data, cols) => {
   );
 };
 
-export const findMaxX = (data, numMax, val) => {
+export const findMaxRow = (data, numMax, val) => {
   return Object.entries(data)
     .filter(
       ([name, count]) =>
@@ -82,6 +82,55 @@ export const findMaxX = (data, numMax, val) => {
     )
     .slice(0, numMax)
     .map(([name, _count]) => name);
+};
+
+/**
+ * Does the same thing as findMaxRow but returns the entire row
+ */
+export const orderRow = (data, val) => {
+  return Object.entries(data)
+    .filter(
+      ([name, count]) =>
+        name !== val && name !== "from_station" && parseInt(count) > 0
+    )
+    .sort(
+      ([_nameA, tripsA], [_nameB, tripsB]) =>
+        parseInt(tripsB) - parseInt(tripsA)
+    );
+};
+
+/**
+ * Convert the col of a 2D array into an object
+ * @param {number[][]} data the data to convert
+ * @param {string} col the column to convert
+ * @returns the column as an object
+ */
+export const getColAsObj = (data, col) => {
+  const res = {};
+  data.map((d) => ({ name: d["from_station"], count: d[col] }));
+  data.forEach((d) => {
+    res[d["from_station"]] = d[col];
+  });
+  return res;
+};
+
+/**
+ * Combine two objects together
+ * @param {Object} obj1 the first object
+ * @param {Object} obj2 the second object
+ * @returns the combined object
+ */
+export const mergeObj = (obj1, obj2) => {
+  const res = {};
+  Object.keys(obj1).forEach((key) => {
+    res[key] = obj1[key] + obj2[key];
+  });
+  Object.keys(obj2).forEach((key) => {
+    if (res[key] === undefined) {
+      res[key] = obj2[key];
+    }
+  });
+  return res;
 };
 
 // Inspired by: https://gist.github.com/pnavarrc/20950640812489f13246
