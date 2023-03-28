@@ -110,7 +110,8 @@ function renderBlueBikeStations(scaleValue) {
     .attr(
       "stroke-width",
       scaleZoom(scaleValue, MAX_STATION_BORDER, MIN_STATION_BORDER)
-    );
+    )
+    .style("cursor", "pointer");
 }
 
 // Add the functionality to the stations (event handlers, color, etc.)

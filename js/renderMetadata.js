@@ -69,7 +69,9 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .range([0, VIS_WIDTH])
       .padding(0.5);
 
-    const MAX_Y = d3.max(data, ([_name, count]) => parseInt(count));
+    const MAX_Y = d3.max(data, ([name, count]) =>
+      name !== stationName ? parseInt(count) : 0
+    );
     const Y_SCALE = d3.scaleLinear().domain([0, MAX_Y]).range([VIS_HEIGHT, 0]);
 
     const color = d3
@@ -107,6 +109,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
         .style("top", `${e.pageY + 10}px`);
     };
 
+    // Render the actual bars with a bit of flair
     bars
       .selectAll("rect")
       .data(data)
@@ -126,6 +129,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .attr("y", ([_name, count]) => Y_SCALE(count) + MARGINS.top)
       .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count));
 
+    // Render the axis
     axis
       .append("g")
       .attr(
@@ -142,8 +146,28 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .attr("font-size", "10px");
   };
 
+  const mean = Math.floor(
+    d3.mean(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+  );
+  const max = Math.floor(
+    d3.max(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+  );
+
+  const metaInput = d3.select("#meta-threshold");
+  d3.select("#meta-threshold-value").text(mean);
+  metaInput.property("value", mean);
+  metaInput.property("max", max);
+  metaInput.property("min", 1);
+  metaInput.on("input", (e, _d) => {
+    d3.select("#meta-threshold-value").text(e.target.value);
+  });
+  metaInput.on("change", (e, _d) => {
+    clearMetaDataContainer();
+    renderBar(mostTrips, e.target.value);
+  });
+
   clearMetaDataContainer();
-  renderBar(mostTrips, 0);
+  renderBar(mostTrips, mean);
 }
 
 export default renderMetaDataContainer;
