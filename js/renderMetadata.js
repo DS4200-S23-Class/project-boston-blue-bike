@@ -8,6 +8,9 @@ const WIDTH = 600;
 const VIS_HEIGHT = HEIGHT - MARGINS.top - MARGINS.bottom;
 const VIS_WIDTH = WIDTH - MARGINS.left - MARGINS.right;
 
+// Globals
+let GLOBAL_STATION = null;
+
 function renderMetaDataContainer() {
   const svg = d3
     .select("#meta-container")
@@ -18,6 +21,11 @@ function renderMetaDataContainer() {
 
   svg.append("g").attr("id", "meta-bars");
   svg.append("g").attr("id", "meta-axis");
+
+  svg.on("selectday", (e) => {
+    clearMetaDataContainer();
+    characterizeMetadata(e.detail.stationMatrix);
+  });
   d3.select("#meta-container")
     .append("div")
     .attr("id", "meta-tooltip")
@@ -30,6 +38,11 @@ function clearMetaDataContainer() {
 }
 
 export function characterizeMetadata(stationMatrix, stationName) {
+  if (stationName) {
+    GLOBAL_STATION = stationName;
+  } else {
+    stationName = GLOBAL_STATION;
+  }
   // Find index of station in stationMatrix
   const stationIndex = stationMatrix.findIndex(
     (_station) => _station["from_station"] === stationName
@@ -130,7 +143,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
   };
 
   clearMetaDataContainer();
-  renderBar(mostTrips, 20);
+  renderBar(mostTrips, 0);
 }
 
 export default renderMetaDataContainer;
