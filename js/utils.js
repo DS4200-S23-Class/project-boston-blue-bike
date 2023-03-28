@@ -70,7 +70,8 @@ export const meanColumn = (data, cols) => {
   );
 };
 
-export const findMaxRow = (data, numMax, val) => {
+export const findMaxRow = (data, numMax) => {
+  const val = data["from_station"];
   return Object.entries(data)
     .filter(
       ([name, count]) =>
@@ -87,7 +88,8 @@ export const findMaxRow = (data, numMax, val) => {
 /**
  * Does the same thing as findMaxRow but returns the entire row
  */
-export const orderRow = (data, val) => {
+export const orderRow = (data) => {
+  const val = data["from_station"];
   return Object.entries(data)
     .filter(
       ([name, count]) =>
@@ -123,11 +125,11 @@ export const getColAsObj = (data, col) => {
 export const mergeObj = (obj1, obj2) => {
   const res = {};
   Object.keys(obj1).forEach((key) => {
-    res[key] = obj1[key] + obj2[key];
+    res[key] = parseInt(obj1[key]) + parseInt(obj2[key]);
   });
   Object.keys(obj2).forEach((key) => {
     if (res[key] === undefined) {
-      res[key] = obj2[key];
+      res[key] = parseInt(obj2[key]);
     }
   });
   return res;

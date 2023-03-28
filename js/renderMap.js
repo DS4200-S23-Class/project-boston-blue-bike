@@ -9,7 +9,7 @@ import {
   meanColumn,
   createScale,
 } from "./utils.js";
-import renderMetadata from "./renderMetadata.js";
+import { characterizeMetadata } from "./renderMetadata.js";
 
 // --------------- Constants ---------------
 const WIDTH = window.innerWidth;
@@ -127,12 +127,12 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
 
     // Get the corresponding row from the matrix and find the X most travelled to stations
     const stationRow = stationMatrix[stationIndex];
-    const mostTripStations = findMaxRow(stationRow, 5, d.name);
+    const mostTripStations = findMaxRow(stationRow, 5);
 
     renderConnections(d, mostTripStations);
 
     // Render the metadata
-    renderMetadata(stationMatrix, d.name);
+    characterizeMetadata(stationMatrix, d.name);
 
     // Add tooltip
     d3.select("#tooltip").style("opacity", 1);

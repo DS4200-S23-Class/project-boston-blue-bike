@@ -30,6 +30,12 @@ h1 {
   justify-content: center;
 }
 
+#meta-container {
+  display: flex;
+  height: 50vh;
+  justify-content: center;
+}
+
 #tooltip {
   z-index: 100;
   position: absolute;
