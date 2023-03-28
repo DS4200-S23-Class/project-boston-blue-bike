@@ -120,27 +120,17 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     const stationNode = e.target;
     stationNode.parentNode.appendChild(stationNode);
 
-    // Find the row in the station matrix that corresponds to the highlighted station
-    const stationIndex = stationMatrix.findIndex(
-      (_station) => _station["from_station"] === d.name
-    );
+    // Add tooltip
+    d3.select("#map-tooltip").style("opacity", 1);
+  };
 
-    // Get the corresponding row from the matrix and find the X most travelled to stations
-    const stationRow = stationMatrix[stationIndex];
-    const mostTripStations = findMaxRow(stationRow, 5);
-
-    renderConnections(d, mostTripStations);
-
+  const mouseClickStationHandler = (_e, d) => {
     // Render the metadata
     characterizeMetadata(stationMatrix, d.name);
-
-    // Add tooltip
-    d3.select("#tooltip").style("opacity", 1);
   };
 
   const mouseLeaveStationHandler = (_e, _d) => {
-    clearConnectionsContainer();
-    d3.select("#tooltip")
+    d3.select("#map-tooltip")
       .style("opacity", 0)
       .style("left", `0`)
       .style("top", `0`);
@@ -148,7 +138,7 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
 
   const mouseMoveStationHandler = (e, d) => {
     // position the tooltip and fill in information
-    d3.select("#tooltip")
+    d3.select("#map-tooltip")
       .html(`${d.name} Total trips: ${d["count"]}`)
       .style("left", `${e.pageX}px`)
       .style("top", `${e.pageY - 50}px`);
@@ -184,6 +174,7 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
             )
           : d.total_trips;
     })
+    .on("click", mouseClickStationHandler)
     .on("mouseenter", mouseEnterStationHandler)
     .on("mouseleave", mouseLeaveStationHandler)
     .on("mousemove", mouseMoveStationHandler)
@@ -194,6 +185,12 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
 
 export function renderConnections(startStation, endStations) {
   const connectionContainer = d3.select('g[data-container="connections"]');
+
+  if (typeof startStation === "string") {
+    startStation = d3
+      .select(`circle[data-station-name="${startStation}"]`)
+      .data()[0];
+  }
 
   endStations.forEach((endStation) => {
     const c = d3.select(`circle[data-station-name="${endStation}"]`).data()[0];
@@ -218,7 +215,7 @@ export function renderConnections(startStation, endStations) {
   });
 }
 
-function clearConnectionsContainer() {
+export function clearConnectionsContainer() {
   const connectionContainer = d3.select('g[data-container="connections"]');
   connectionContainer.selectAll("line").remove();
 }
@@ -226,7 +223,8 @@ function clearConnectionsContainer() {
 function renderToolTip() {
   d3.select("#boston-map")
     .append("div")
-    .attr("id", "tooltip")
+    .attr("id", "map-tooltip")
+    .attr("class", "tooltip")
     .style("opacity", 0);
 }
 

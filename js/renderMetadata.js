@@ -1,4 +1,5 @@
 import { getColAsObj, orderRow, mergeObj } from "./utils.js";
+import { renderConnections, clearConnectionsContainer } from "./renderMap.js";
 
 // --------------- Constants ---------------
 const MARGINS = { top: 10, right: 10, bottom: 20, left: 65 };
@@ -17,6 +18,10 @@ function renderMetaDataContainer() {
 
   svg.append("g").attr("id", "meta-bars");
   svg.append("g").attr("id", "meta-axis");
+  d3.select("#meta-container")
+    .append("div")
+    .attr("id", "meta-tooltip")
+    .attr("class", "tooltip");
 }
 
 function clearMetaDataContainer() {
@@ -44,7 +49,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
     const data = tripArray.filter(
       ([name, count]) => parseInt(count) >= minCount && name !== stationName
     );
-    console.log(data);
+
     const X_SCALE = d3
       .scaleBand()
       .domain(data.map(([name, _count]) => name))
@@ -54,8 +59,40 @@ export function characterizeMetadata(stationMatrix, stationName) {
     const MAX_Y = d3.max(data, ([_name, count]) => parseInt(count));
     const Y_SCALE = d3.scaleLinear().domain([0, MAX_Y]).range([VIS_HEIGHT, 0]);
 
+    const color = d3
+      .scaleLinear()
+      .domain([minCount, MAX_Y])
+      .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
+
     const axis = d3.select("#meta-axis");
     const bars = d3.select("#meta-bars");
+
+    // Event handlers
+    const mouseover = (e, d) => {
+      const [name, count] = d;
+      d3.select("#meta-tooltip")
+        .style("opacity", 1)
+        .style("left", `${e.pageX + 10}px`)
+        .style("top", `${e.pageY + 10}px`)
+        .html(`${name}: ${count}`);
+
+      renderConnections(stationName, [name]);
+    };
+
+    const mouseleave = (_e, _d) => {
+      d3.select("#meta-tooltip")
+        .style("opacity", 0)
+        .style("left", `0`)
+        .style("top", `0`);
+
+      clearConnectionsContainer();
+    };
+
+    const mousemove = (e, _d) => {
+      d3.select("#meta-tooltip")
+        .style("left", `${e.pageX + 10}px`)
+        .style("top", `${e.pageY + 10}px`);
+    };
 
     bars
       .selectAll("rect")
@@ -66,8 +103,11 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .attr("x", ([name, _count]) => X_SCALE(name) + MARGINS.left)
       .attr("y", ([_name, count]) => Y_SCALE(count) + MARGINS.top)
       .attr("width", X_SCALE.bandwidth())
-      .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count));
-    // .attr("fill", RECT_COLOR)
+      .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count))
+      .attr("fill", ([_name, count]) => color(count))
+      .on("mouseover", mouseover)
+      .on("mouseleave", mouseleave)
+      .on("mousemove", mousemove);
 
     axis
       .append("g")
@@ -86,7 +126,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
   };
 
   clearMetaDataContainer();
-  renderBar(mostTrips, 100);
+  renderBar(mostTrips, 20);
 }
 
 export default renderMetaDataContainer;
