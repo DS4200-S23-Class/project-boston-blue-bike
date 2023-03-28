@@ -14,23 +14,55 @@
 
     <div class="textbox">
       <h2>Motivation</h2>
-      Boston's Blue Bike network is incredibly expansive, with hundreds of stations and thousands 
-      of daily riders, a lot of valuable information can get lost in the vast amounts of data. 
-      However, one common problem for riders and bike maintainers alike is the issue of empty 
-      (and full) stations. If a station is full, it is not possible for a rider to return their bike to
-      that station, and if a station is empty, it is not possible for a rider to take a bike. Visualizing trips across stations can help
-      show which stations are available at which times thrwoughout the day, week, month, etc. In addition to understanding the popular stations and routes,
-      this visualization can also help identify which areas of the city are underserved by the Blue Bike system.
+      Boston's Blue Bike network is incredibly expansive, with hundreds of
+      stations and thousands of daily riders, a lot of valuable information can
+      get lost in the vast amounts of data. However, one common problem for
+      riders and bike maintainers alike is the issue of empty (and full)
+      stations. If a station is full, it is not possible for a rider to return
+      their bike to that station, and if a station is empty, it is not possible
+      for a rider to take a bike. Visualizing trips across stations can help
+      show which stations are available at which times thrwoughout the day,
+      week, month, etc. In addition to understanding the popular stations and
+      routes, this visualization can also help identify which areas of the city
+      are underserved by the Blue Bike system.
     </div>
 
     <div class="textbox">
       <h2>Background</h2>
       <h3>Data</h3>
-      Our project visualizes data related to the Blue Bikes bike-sharing system in the Boston Metro Area. The data focuses on ridership patterns, bike availability, and route preferences to help optimize the system and improve its overall efficiency.  The primary source of the data is the Boston Blue Bike official website, specifically the trip data from September 2022. The dataset includes information about trip duration, start and end times and stations, and anonymized user data.
-      Biases and ethical issues embedded in the data are minimal, as the data is anonymized and does not contain personal information regarding the users who took the trips. However, there is a small possibility that someone could potentially track down a particular rider if they know a combination of information about the rider's exact start/end time or station. It is important to note that all of this data is anonymized, so any potentially identifying information is removed from the data set before it is published, making it tough to use for malicious reasons.
-      Regarding data quality issues, the provided data from the Blue Bike system does not contain any missing values, and every row has complete information (except for the postal code column, which is irrelevant to the data visualization). Additionally, data is consistent across categorical attributes (e.g., Station Name) and requires no cleaning in this regard.
-      The data was processed to better understand activity across different stations and dates. The original dataset was modified, and individual trips were removed. Instead, each station was given its own row, and the raw trip data was parsed to obtain the number of trips to and from each station for each day of the month. The region/neighborhood of each station was also added to the dataset. Furthermore, multiple new datasets were created containing a matrix with a row and a column for each station. The data in these new datasets represents the number of trips between two specific stations, where the row represents the start station and the column represents the end station.
-      Link to data: <a href="https://s3.amazonaws.com/hubway-data/index.html">Blue Bike Data</a>
+      Our project visualizes data related to the Blue Bikes bike-sharing system
+      in the Boston Metro Area. The data focuses on ridership patterns, bike
+      availability, and route preferences to help optimize the system and
+      improve its overall efficiency. The primary source of the data is the
+      Boston Blue Bike official website, specifically the trip data from
+      September 2022. The dataset includes information about trip duration,
+      start and end times and stations, and anonymized user data. Biases and
+      ethical issues embedded in the data are minimal, as the data is anonymized
+      and does not contain personal information regarding the users who took the
+      trips. However, there is a small possibility that someone could
+      potentially track down a particular rider if they know a combination of
+      information about the rider's exact start/end time or station. It is
+      important to note that all of this data is anonymized, so any potentially
+      identifying information is removed from the data set before it is
+      published, making it tough to use for malicious reasons. Regarding data
+      quality issues, the provided data from the Blue Bike system does not
+      contain any missing values, and every row has complete information (except
+      for the postal code column, which is irrelevant to the data
+      visualization). Additionally, data is consistent across categorical
+      attributes (e.g., Station Name) and requires no cleaning in this regard.
+      The data was processed to better understand activity across different
+      stations and dates. The original dataset was modified, and individual
+      trips were removed. Instead, each station was given its own row, and the
+      raw trip data was parsed to obtain the number of trips to and from each
+      station for each day of the month. The region/neighborhood of each station
+      was also added to the dataset. Furthermore, multiple new datasets were
+      created containing a matrix with a row and a column for each station. The
+      data in these new datasets represents the number of trips between two
+      specific stations, where the row represents the start station and the
+      column represents the end station. Link to data:
+      <a href="https://s3.amazonaws.com/hubway-data/index.html">
+        Blue Bike Data
+      </a>
     </div>
 
     <div>
@@ -39,7 +71,11 @@
         <div id="boston-map"></div>
         <div class="info-col">
           <div id="day-container"></div>
-          <div id="region2"><p>Test</p></div>
+          <div id="region2">
+            <input type="range" id="meta-threshold" />
+            <span id="meta-threshold-value"></span>
+            <div id="meta-container"></div>
+          </div>
         </div>
       </div>
     </div>
