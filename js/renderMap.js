@@ -209,7 +209,7 @@ export function renderConnections(startStation, endStations) {
       .attr("x2", startStation.projectedLongitude + offsetX)
       .attr("y2", startStation.projectedLatitude + offsetY)
       .transition()
-      .duration(200)
+      .duration(150)
       .attr("x2", c.projectedLongitude - offsetX)
       .attr("y2", c.projectedLatitude - offsetY);
   });

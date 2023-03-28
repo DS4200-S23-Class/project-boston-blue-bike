@@ -101,13 +101,17 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .append("rect")
       .attr("class", "bar")
       .attr("x", ([name, _count]) => X_SCALE(name) + MARGINS.left)
-      .attr("y", ([_name, count]) => Y_SCALE(count) + MARGINS.top)
+      .attr("y", ([_name, _count]) => HEIGHT - MARGINS.bottom)
       .attr("width", X_SCALE.bandwidth())
-      .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count))
+      .attr("height", ([_name, _count]) => 0)
       .attr("fill", ([_name, count]) => color(count))
       .on("mouseover", mouseover)
       .on("mouseleave", mouseleave)
-      .on("mousemove", mousemove);
+      .on("mousemove", mousemove)
+      .transition()
+      .duration(500)
+      .attr("y", ([_name, count]) => Y_SCALE(count) + MARGINS.top)
+      .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count));
 
     axis
       .append("g")
