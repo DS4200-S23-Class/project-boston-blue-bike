@@ -136,6 +136,11 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     d3.select("#map-tooltip").style("opacity", 1);
 
     highlightBar(d.name);
+
+    const selected = d3.select("circle.selected");
+    if (selected && selected.attr("data-station-name") !== d.name) {
+      renderConnections(selected.attr("data-station-name"), [d.name]);
+    }
   };
 
   const mouseClickStationHandler = (_e, d) => {
@@ -215,6 +220,7 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
       .style("top", `0`);
 
     resetHighlight(d.name);
+    clearConnectionsContainer();
   };
 
   const mouseMoveStationHandler = (e, d) => {
