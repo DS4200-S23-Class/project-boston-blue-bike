@@ -55,3 +55,7 @@ h1 {
   margin: auto;
   max-width: 900px;
 }
+
+.no-events {
+  pointer-events: none;
+}

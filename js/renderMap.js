@@ -11,7 +11,12 @@ import {
   orderRow,
   mergeObj,
 } from "./utils.js";
-import { characterizeMetadata } from "./renderMetadata.js";
+import {
+  characterizeMetadata,
+  highlightBar,
+  resetHighlight,
+  resetMetaData,
+} from "./renderMetadata.js";
 
 // --------------- Constants ---------------
 const WIDTH = window.innerWidth;
@@ -47,8 +52,12 @@ const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
 
 // --------------- Prep Map container ---------------
 d3.select("#boston-map").on("selectday", (e) => {
-  clearConnectionsContainer();
   characterizeBlueBikeStations(e.detail.days, e.detail.stationMatrix);
+  d3.select("circle.selected").dispatch("click");
+});
+
+d3.select("#clear-selection").on("click", () => {
+  resetBlueBikeStations();
 });
 
 // --------------- Prep SVG ---------------
@@ -125,10 +134,18 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
 
     // Add tooltip
     d3.select("#map-tooltip").style("opacity", 1);
+
+    highlightBar(d.name);
   };
 
   const mouseClickStationHandler = (_e, d) => {
     const stationName = d.name;
+
+    d3.selectAll("circle.selected").attr("class", "");
+    d3.select(`circle[data-station-name="${stationName}"]`).attr(
+      "class",
+      "selected"
+    );
 
     // STEP 1 - Aggregate the data
     // Find index of station in stationMatrix
@@ -189,11 +206,13 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     ]);
   };
 
-  const mouseLeaveStationHandler = (_e, _d) => {
+  const mouseLeaveStationHandler = (_e, d) => {
     d3.select("#map-tooltip")
       .style("opacity", 0)
       .style("left", `0`)
       .style("top", `0`);
+
+    resetHighlight(d.name);
   };
 
   const mouseMoveStationHandler = (e, d) => {
@@ -243,21 +262,28 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     .attr("fill", (d) => color(d["count"]));
 }
 
-function filterBlueBikeStations(keepStations) {
+export function resetBlueBikeStations() {
   const stationContainer = d3.select('g[data-container="stations"]');
-  console.log(keepStations);
 
   stationContainer
     .selectAll("circle")
     .transition()
     .duration(200)
-    .attr("r", (d) => {
-      if (keepStations.includes(d.name)) {
-        return scaleZoom(GLOBAL_K, MAX_STATION_SIZE, MIN_STATION_SIZE);
-      } else {
-        return 0;
-      }
-    });
+    .attr("opacity", 1);
+
+  resetMetaData();
+}
+
+function filterBlueBikeStations(keepStations) {
+  const stationContainer = d3.select('g[data-container="stations"]');
+
+  stationContainer
+    .selectAll("circle")
+    .classed("no-events", (d) => !keepStations.includes(d.name))
+    .transition()
+    .duration(200)
+    .attr("opacity", (d) => (keepStations.includes(d.name) ? 1 : 0))
+    .transition();
 }
 
 export function renderConnections(startStation, endStations) {

@@ -21,10 +21,6 @@ function renderMetaDataContainer() {
   svg.append("g").attr("id", "meta-bars");
   svg.append("g").attr("id", "meta-axis");
 
-  svg.on("selectday", (e) => {
-    clearMetaDataContainer();
-    characterizeMetadata(e.detail.stationMatrix);
-  });
   d3.select("#meta-container")
     .append("div")
     .attr("id", "meta-tooltip")
@@ -36,11 +32,20 @@ function clearMetaDataContainer() {
   d3.select("#meta-axis").selectAll("*").remove();
 }
 
+export function resetMetaData() {
+  clearMetaDataContainer();
+  GLOBAL_STATION = null;
+}
+
 export function characterizeMetadata(stationData, stationName) {
   if (stationName) {
     GLOBAL_STATION = stationName;
   } else {
     stationName = GLOBAL_STATION;
+  }
+
+  if (!stationName) {
+    return;
   }
 
   const renderBar = (tripArray) => {
@@ -105,6 +110,7 @@ export function characterizeMetadata(stationData, stationName) {
       .attr("width", X_SCALE.bandwidth())
       .attr("height", ([_name, _count]) => 0)
       .attr("fill", ([_name, count]) => color(count))
+      .attr("data-station", ([name, _count]) => name)
       .on("mouseover", mouseover)
       .on("mouseleave", mouseleave)
       .on("mousemove", mousemove)
@@ -132,6 +138,21 @@ export function characterizeMetadata(stationData, stationName) {
 
   clearMetaDataContainer();
   renderBar(stationData);
+}
+
+export function highlightBar(stationName) {
+  d3.selectAll(`rect[data-station="${stationName}"]`)
+    .transition()
+    .duration(500)
+    .attr("stroke", "red")
+    .attr("stroke-width", 4);
+}
+
+export function resetHighlight(stationName) {
+  d3.selectAll(`rect[data-station="${stationName}"]`)
+    .transition()
+    .duration(500)
+    .attr("stroke", null);
 }
 
 export default renderMetaDataContainer;
