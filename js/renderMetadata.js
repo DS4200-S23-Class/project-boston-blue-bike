@@ -1,4 +1,3 @@
-import { getColAsObj, orderRow, mergeObj } from "./utils.js";
 import { renderConnections, clearConnectionsContainer } from "./renderMap.js";
 
 // --------------- Constants ---------------
@@ -22,10 +21,6 @@ function renderMetaDataContainer() {
   svg.append("g").attr("id", "meta-bars");
   svg.append("g").attr("id", "meta-axis");
 
-  svg.on("selectday", (e) => {
-    clearMetaDataContainer();
-    characterizeMetadata(e.detail.stationMatrix);
-  });
   d3.select("#meta-container")
     .append("div")
     .attr("id", "meta-tooltip")
@@ -37,31 +32,24 @@ function clearMetaDataContainer() {
   d3.select("#meta-axis").selectAll("*").remove();
 }
 
-export function characterizeMetadata(stationMatrix, stationName) {
+export function resetMetaData() {
+  clearMetaDataContainer();
+  GLOBAL_STATION = null;
+}
+
+export function characterizeMetadata(stationData, stationName) {
   if (stationName) {
     GLOBAL_STATION = stationName;
   } else {
     stationName = GLOBAL_STATION;
   }
-  // Find index of station in stationMatrix
-  const stationIndex = stationMatrix.findIndex(
-    (_station) => _station["from_station"] === stationName
-  );
 
-  // Order stations by most trips from desired station
-  const mostTripsFrom = orderRow(stationMatrix[stationIndex]);
+  if (!stationName) {
+    return;
+  }
 
-  // Order stations by most trips to desired station
-  const stationCol = getColAsObj(stationMatrix, stationName);
-  const mostTripsTo = orderRow(stationCol);
-
-  // Order stations by most total trips between the desired station
-  const mostTrips = orderRow(mergeObj(stationCol, stationMatrix[stationIndex]));
-
-  const renderBar = (tripArray, minCount) => {
-    const data = tripArray.filter(
-      ([name, count]) => parseInt(count) >= minCount && name !== stationName
-    );
+  const renderBar = (tripArray) => {
+    const data = tripArray.filter(([name, _count]) => name !== stationName);
 
     const X_SCALE = d3
       .scaleBand()
@@ -69,6 +57,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .range([0, VIS_WIDTH])
       .padding(0.5);
 
+    const MIN_Y = d3.min(data, ([name, count]) => parseInt(count));
     const MAX_Y = d3.max(data, ([name, count]) =>
       name !== stationName ? parseInt(count) : 0
     );
@@ -76,7 +65,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
 
     const color = d3
       .scaleLinear()
-      .domain([minCount, MAX_Y])
+      .domain([MIN_Y, MAX_Y])
       .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
 
     const axis = d3.select("#meta-axis");
@@ -121,6 +110,7 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .attr("width", X_SCALE.bandwidth())
       .attr("height", ([_name, _count]) => 0)
       .attr("fill", ([_name, count]) => color(count))
+      .attr("data-station", ([name, _count]) => name)
       .on("mouseover", mouseover)
       .on("mouseleave", mouseleave)
       .on("mousemove", mousemove)
@@ -146,28 +136,23 @@ export function characterizeMetadata(stationMatrix, stationName) {
       .attr("font-size", "10px");
   };
 
-  const mean = Math.floor(
-    d3.mean(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
-  );
-  const max = Math.floor(
-    d3.max(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
-  );
-
-  const metaInput = d3.select("#meta-threshold");
-  d3.select("#meta-threshold-value").text(mean);
-  metaInput.property("value", mean);
-  metaInput.property("max", max);
-  metaInput.property("min", 1);
-  metaInput.on("input", (e, _d) => {
-    d3.select("#meta-threshold-value").text(e.target.value);
-  });
-  metaInput.on("change", (e, _d) => {
-    clearMetaDataContainer();
-    renderBar(mostTrips, e.target.value);
-  });
-
   clearMetaDataContainer();
-  renderBar(mostTrips, mean);
+  renderBar(stationData);
+}
+
+export function highlightBar(stationName) {
+  d3.selectAll(`rect[data-station="${stationName}"]`)
+    .transition()
+    .duration(500)
+    .attr("stroke", "red")
+    .attr("stroke-width", 4);
+}
+
+export function resetHighlight(stationName) {
+  d3.selectAll(`rect[data-station="${stationName}"]`)
+    .transition()
+    .duration(500)
+    .attr("stroke", null);
 }
 
 export default renderMetaDataContainer;

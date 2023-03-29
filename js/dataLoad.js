@@ -3,7 +3,6 @@ import { mergeMatrices } from "./dataTransformation.js";
 const MAP_FINAL_URL = "data/map-final/greaterboston.geojson";
 const MASS_MAP_URL = "data/maps/massachusetts.geojson";
 const WATER_URL = "data/maps/water.geojson";
-const BLUE_BIKE_STATION_URL = "data/bluebike/bluebike_station.csv";
 const BLUE_BIKE_CLEAN_STATION_URL = "data/bluebike/stations-2.csv";
 const STATION_MATRIX_URL = (id) =>
   `data/bluebike/station_matrix/station_matrix_${id}.csv`;

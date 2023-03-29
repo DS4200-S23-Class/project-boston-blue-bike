@@ -24,8 +24,8 @@ const renderDays = () => {
   const MIN_TRIP_DAY = Math.min(...tripsByDay.values());
   const color = d3
     .scaleLinear()
-    .domain([MIN_TRIP_DAY, MEAN_TRIP_DAY, MAX_TRIP_DAY])
-    .range(["blue", "white", "red"]);
+    .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
+    .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
   const selectedDays = [];
 
   const selectDay = debounce(async () => {
@@ -35,9 +35,6 @@ const renderDays = () => {
         : await getTripMatrix("total");
 
     d3.select("#boston-map").dispatch("selectday", {
-      detail: { days: selectedDays, stationMatrix: matrix },
-    });
-    d3.select("#meta-svg").dispatch("selectday", {
       detail: { days: selectedDays, stationMatrix: matrix },
     });
   }, 500);

@@ -36,6 +36,12 @@ h1 {
   justify-content: center;
 }
 
+#select-text {
+  font-size: 30px;
+  display: flex;
+  justify-content: center;
+}
+
 .tooltip {
   z-index: 100;
   position: absolute;
@@ -54,4 +60,12 @@ h1 {
 .textbox {
   margin: auto;
   max-width: 900px;
+}
+
+.no-events {
+  pointer-events: none;
+}
+
+.no-display {
+  display: none !important;
 }
