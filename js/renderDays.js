@@ -37,9 +37,6 @@ const renderDays = () => {
     d3.select("#boston-map").dispatch("selectday", {
       detail: { days: selectedDays, stationMatrix: matrix },
     });
-    d3.select("#meta-svg").dispatch("selectday", {
-      detail: { days: selectedDays, stationMatrix: matrix },
-    });
   }, 500);
 
   DAYS.forEach((day, index) => {

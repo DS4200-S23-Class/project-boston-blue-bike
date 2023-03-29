@@ -36,6 +36,12 @@ h1 {
   justify-content: center;
 }
 
+#select-text {
+  font-size: 30px;
+  display: flex;
+  justify-content: center;
+}
+
 .tooltip {
   z-index: 100;
   position: absolute;
@@ -61,5 +67,5 @@ h1 {
 }
 
 .no-display {
-  display: none;
+  display: none !important;
 }
