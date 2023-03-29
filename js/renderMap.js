@@ -146,6 +146,7 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
       "class",
       "selected"
     );
+    d3.select("#controls").attr("class", "");
 
     // STEP 1 - Aggregate the data
     // Find index of station in stationMatrix
@@ -272,6 +273,8 @@ export function resetBlueBikeStations() {
     .transition()
     .duration(200)
     .attr("opacity", 1);
+
+  d3.select("#controls").attr("class", "no-display");
 
   resetMetaData();
 }

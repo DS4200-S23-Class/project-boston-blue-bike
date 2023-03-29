@@ -59,3 +59,7 @@ h1 {
 .no-events {
   pointer-events: none;
 }
+
+.no-display {
+  display: none;
+}
