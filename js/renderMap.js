@@ -5,9 +5,11 @@ import {
   scaleZoom,
   calcOffset,
   maxColumn,
-  findMaxRow,
   meanColumn,
   createScale,
+  getColAsObj,
+  orderRow,
+  mergeObj,
 } from "./utils.js";
 import { characterizeMetadata } from "./renderMetadata.js";
 
@@ -126,8 +128,65 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
   };
 
   const mouseClickStationHandler = (_e, d) => {
-    // Render the metadata
-    characterizeMetadata(stationMatrix, d.name);
+    const stationName = d.name;
+
+    // STEP 1 - Aggregate the data
+    // Find index of station in stationMatrix
+    const stationIndex = stationMatrix.findIndex(
+      (_station) => _station["from_station"] === stationName
+    );
+
+    // Order stations by most trips from desired station
+    const mostTripsFrom = orderRow(stationMatrix[stationIndex]);
+
+    // Order stations by most trips to desired station
+    const stationCol = getColAsObj(stationMatrix, stationName);
+    const mostTripsTo = orderRow(stationCol);
+
+    // Order stations by most total trips between the desired station
+    const mostTrips = orderRow(
+      mergeObj(stationCol, stationMatrix[stationIndex])
+    );
+
+    // STEP 2 - Find limits for the metadata threshold
+    const mean = Math.floor(
+      d3.mean(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+    );
+    const max = Math.floor(
+      d3.max(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+    );
+
+    const data = mostTrips.filter(
+      ([name, count]) => parseInt(count) >= mean && name !== stationName
+    );
+
+    // STEP 3 - Configure the metadata threshold
+    const metaInput = d3.select("#meta-threshold");
+    d3.select("#meta-threshold-value").text(mean);
+    metaInput.property("value", mean);
+    metaInput.property("max", max);
+    metaInput.property("min", 1);
+    metaInput.on("input", (e, _d) => {
+      d3.select("#meta-threshold-value").text(e.target.value);
+    });
+    metaInput.on("change", (e, _d) => {
+      const data = mostTrips.filter(
+        ([name, count]) =>
+          parseInt(count) >= e.target.value && name !== stationName
+      );
+      characterizeMetadata(data, stationName);
+      filterBlueBikeStations([
+        stationName,
+        ...data.map(([name, _count]) => name),
+      ]);
+    });
+
+    // STEP 4 - Render the metadata
+    characterizeMetadata(data, stationName);
+    filterBlueBikeStations([
+      stationName,
+      ...data.map(([name, _count]) => name),
+    ]);
   };
 
   const mouseLeaveStationHandler = (_e, _d) => {
@@ -184,6 +243,23 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     .attr("fill", (d) => color(d["count"]));
 }
 
+function filterBlueBikeStations(keepStations) {
+  const stationContainer = d3.select('g[data-container="stations"]');
+  console.log(keepStations);
+
+  stationContainer
+    .selectAll("circle")
+    .transition()
+    .duration(200)
+    .attr("r", (d) => {
+      if (keepStations.includes(d.name)) {
+        return scaleZoom(GLOBAL_K, MAX_STATION_SIZE, MIN_STATION_SIZE);
+      } else {
+        return 0;
+      }
+    });
+}
+
 export function renderConnections(startStation, endStations) {
   const connectionContainer = d3.select('g[data-container="connections"]');
 
@@ -200,7 +276,7 @@ export function renderConnections(startStation, endStations) {
       startStation.projectedLatitude,
       c.projectedLongitude,
       c.projectedLatitude,
-      d3.select("circle").attr("r")
+      scaleZoom(GLOBAL_K, MAX_STATION_SIZE, MIN_STATION_SIZE)
     );
     connectionContainer
       .append("line")
