@@ -1,4 +1,3 @@
-import { projectCoordinates } from "./dataTransformation.js";
 import { geoJson, blueBikeStations, getTripMatrix } from "./dataLoad.js";
 import {
   debounce,
@@ -19,8 +18,6 @@ import {
 } from "./renderMetadata.js";
 
 // --------------- Constants ---------------
-const WIDTH = window.innerWidth;
-const HEIGHT = window.innerHeight;
 const ZOOM_THRESHOLD = [1, 7];
 const MAX_STATION_SIZE = 3;
 const MIN_STATION_SIZE = 1.25;
@@ -30,7 +27,7 @@ const MIN_STATION_BORDER = 0.1;
 let GLOBAL_K = 1;
 
 // --------------- Event handlers ---------------
-const debouncedStationResize = debounce((zoomScale) => {
+export const debouncedStationResize = debounce((zoomScale) => {
   d3.select('g[data-container="stations"]')
     .selectAll("circle")
     .transition()
@@ -42,53 +39,42 @@ const debouncedStationResize = debounce((zoomScale) => {
     );
 }, 400);
 
-const zoomHandler = (e) => {
-  g.attr("transform", e.transform);
-  GLOBAL_K = e.transform.k;
-  debouncedStationResize(GLOBAL_K);
-};
+export function renderMapContainer({ zoomCallback }) {
+  const zoomHandler = (e) => {
+    g.attr("transform", e.transform);
+    GLOBAL_K = e.transform.k;
+    zoomCallback(GLOBAL_K);
+  };
 
-const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
+  const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
 
-// --------------- Prep Map container ---------------
-d3.select("#boston-map").on("selectday", (e) => {
-  characterizeBlueBikeStations(e.detail.days, e.detail.stationMatrix);
-  d3.select("circle.selected").dispatch("click");
-});
+  // --------------- Prep Map container ---------------
+  d3.select("#boston-map").on("selectday", (e) => {
+    characterizeBlueBikeStations(e.detail.days, e.detail.stationMatrix);
+    d3.select("circle.selected").dispatch("click");
+  });
 
-d3.select("#clear-selection").on("click", () => {
-  resetBlueBikeStations();
-});
+  d3.select("#clear-selection").on("click", () => {
+    resetBlueBikeStations();
+  });
 
-// --------------- Prep SVG ---------------
-const svg = d3
-  .select("#boston-map")
-  .append("svg")
-  .attr("width", "100%")
-  .attr("height", "100%");
+  // --------------- Prep SVG ---------------
+  const svg = d3
+    .select("#boston-map")
+    .append("svg")
+    .attr("id", "boston-svg")
+    .attr("width", "100%")
+    .attr("height", "100%");
 
-const g = svg.call(zoom).append("g");
+  const g = svg.call(zoom).append("g").attr("id", "svg-container");
+}
 
-// Align projection
-const projection = d3
-  .geoMercator()
-  .center([-71, 42.3601])
-  .scale(90000)
-  .translate([WIDTH / 4, HEIGHT / 2]);
-
-const projectedStations = projectCoordinates(
-  blueBikeStations,
-  projection,
-  "latitude",
-  "longitude"
-);
-
-// Calculate path for regions outlines
-const path = d3.geoPath().projection(projection);
-
-function renderBostonRegions() {
+export function renderBostonRegions({ projection }) {
+  // Calculate path for regions outlines
+  const path = d3.geoPath().projection(projection);
   // Draw regions of Boston area
-  g.append("g")
+  d3.select("#svg-container")
+    .append("g")
     .selectAll("path")
     .data(geoJson.features)
     .enter()
@@ -100,17 +86,19 @@ function renderBostonRegions() {
 }
 
 // Add the container for the blue bike stations and connections
-function renderBlueBikeStationsContainer() {
-  g.append("g").attr("data-container", "stations");
-  g.append("g").attr("data-container", "connections");
+export function renderBlueBikeStationsContainer() {
+  const svgContainer = d3.select("#svg-container");
+  svgContainer.append("g").attr("data-container", "stations");
+  svgContainer.append("g").attr("data-container", "connections");
 }
 
 // Add the individual stations as circles
-function renderBlueBikeStations(scaleValue) {
+export function renderBlueBikeStations({ scaleValue, stations }) {
+  console.log(scaleValue);
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
     .selectAll("circle")
-    .data(projectedStations)
+    .data(stations)
     .enter()
     .append("circle")
     .attr("cx", (d) => d.projectedLongitude)
@@ -126,7 +114,11 @@ function renderBlueBikeStations(scaleValue) {
 }
 
 // Add the functionality to the stations (event handlers, color, etc.)
-async function characterizeBlueBikeStations(days, stationMatrix) {
+export async function characterizeBlueBikeStations({
+  stations,
+  stationMatrix,
+  selectStationCallback,
+}) {
   // Event handlers
   const mouseEnterStationHandler = (e, d) => {
     const stationNode = e.target;
@@ -144,73 +136,58 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
   };
 
   const mouseClickStationHandler = (_e, d) => {
-    const stationName = d.name;
-
-    d3.selectAll("circle.selected").attr("class", "");
-    d3.select(`circle[data-station-name="${stationName}"]`).attr(
-      "class",
-      "selected"
-    );
-    d3.select("#controls").attr("class", "");
-    d3.select("#select-text").attr("class", "no-display");
-
-    // STEP 1 - Aggregate the data
-    // Find index of station in stationMatrix
-    const stationIndex = stationMatrix.findIndex(
-      (_station) => _station["from_station"] === stationName
-    );
-
-    // Order stations by most trips from desired station
-    const mostTripsFrom = orderRow(stationMatrix[stationIndex]);
-
-    // Order stations by most trips to desired station
-    const stationCol = getColAsObj(stationMatrix, stationName);
-    const mostTripsTo = orderRow(stationCol);
-
-    // Order stations by most total trips between the desired station
-    const mostTrips = orderRow(
-      mergeObj(stationCol, stationMatrix[stationIndex])
-    );
-
-    // STEP 2 - Find limits for the metadata threshold
-    const mean = Math.floor(
-      d3.mean(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
-    );
-    const max = Math.floor(
-      d3.max(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
-    );
-
-    const data = mostTrips.filter(
-      ([name, count]) => parseInt(count) >= mean && name !== stationName
-    );
-
-    // STEP 3 - Configure the metadata threshold
-    const metaInput = d3.select("#meta-threshold");
-    d3.select("#meta-threshold-value").text(mean);
-    metaInput.property("value", mean);
-    metaInput.property("max", max);
-    metaInput.property("min", 1);
-    metaInput.on("input", (e, _d) => {
-      d3.select("#meta-threshold-value").text(e.target.value);
-    });
-    metaInput.on("change", (e, _d) => {
-      const data = mostTrips.filter(
-        ([name, count]) =>
-          parseInt(count) >= e.target.value && name !== stationName
-      );
-      characterizeMetadata(data, stationName);
-      filterBlueBikeStations([
-        stationName,
-        ...data.map(([name, _count]) => name),
-      ]);
-    });
-
-    // STEP 4 - Render the metadata
-    characterizeMetadata(data, stationName);
-    filterBlueBikeStations([
-      stationName,
-      ...data.map(([name, _count]) => name),
-    ]);
+    selectStationCallback(d.name);
+    // d3.selectAll("circle.selected").attr("class", "");
+    // d3.select(`circle[data-station-name="${stationName}"]`).attr(
+    //   "class",
+    //   "selected"
+    // );
+    // // STEP 1 - Aggregate the data
+    // // Find index of station in stationMatrix
+    // const stationIndex = stationMatrix.findIndex(
+    //   (_station) => _station["from_station"] === stationName
+    // );
+    // const stationCol = getColAsObj(stationMatrix, stationName);
+    // // Order stations by most total trips between the desired station
+    // const mostTrips = orderRow(
+    //   mergeObj(stationCol, stationMatrix[stationIndex])
+    // );
+    // // STEP 2 - Find limits for the metadata threshold
+    // const mean = Math.floor(
+    //   d3.mean(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+    // );
+    // const max = Math.floor(
+    //   d3.max(mostTrips, ([name, count]) => (name !== stationName ? count : 0))
+    // );
+    // const data = mostTrips.filter(
+    //   ([name, count]) => parseInt(count) >= mean && name !== stationName
+    // );
+    // // STEP 3 - Configure the metadata threshold
+    // const metaInput = d3.select("#meta-threshold");
+    // d3.select("#meta-threshold-value").text(mean);
+    // metaInput.property("value", mean);
+    // metaInput.property("max", max);
+    // metaInput.property("min", 1);
+    // metaInput.on("input", (e, _d) => {
+    //   d3.select("#meta-threshold-value").text(e.target.value);
+    // });
+    // metaInput.on("change", (e, _d) => {
+    //   const data = mostTrips.filter(
+    //     ([name, count]) =>
+    //       parseInt(count) >= e.target.value && name !== stationName
+    //   );
+    //   characterizeMetadata(data, stationName);
+    //   filterBlueBikeStations([
+    //     stationName,
+    //     ...data.map(([name, _count]) => name),
+    //   ]);
+    // });
+    // // STEP 4 - Render the metadata
+    // characterizeMetadata(data, stationName);
+    // filterBlueBikeStations([
+    //   stationName,
+    //   ...data.map(([name, _count]) => name),
+    // ]);
   };
 
   const mouseLeaveStationHandler = (_e, d) => {
@@ -231,15 +208,9 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
       .style("top", `${e.pageY - 50}px`);
   };
 
-  const MEAN_TRIPS =
-    !!days && days.length > 0
-      ? meanColumn(projectedStations, days)
-      : d3.mean(projectedStations, (d) => parseInt(d["total_trips"]));
+  const MEAN_TRIPS = d3.mean(stations, (d) => parseInt(d["total_trips"]));
 
-  const MAX_TRIPS =
-    !!days && days.length > 0
-      ? maxColumn(projectedStations, days)
-      : d3.max(projectedStations, (d) => parseInt(d["total_trips"]));
+  const MAX_TRIPS = d3.max(stations, (d) => parseInt(d["total_trips"]));
 
   const color = d3
     .scaleLinear()
@@ -247,27 +218,20 @@ async function characterizeBlueBikeStations(days, stationMatrix) {
     .range(["blue", "white", "red"]);
 
   // Add gradient scale
-  createScale(svg, MEAN_TRIPS, MAX_TRIPS);
+  createScale(d3.select("#boston-svg"), MEAN_TRIPS, MAX_TRIPS);
 
   const stationContainer = d3.select('g[data-container="stations"]');
   stationContainer
     .selectAll("circle")
-    .each((d) => {
-      d["count"] =
-        !!days && days.length > 0
-          ? days.reduce(
-              (total, day) => total + parseInt(d[`${day}_total_trips`]),
-              0
-            )
-          : d.total_trips;
-    })
     .on("click", mouseClickStationHandler)
     .on("mouseenter", mouseEnterStationHandler)
     .on("mouseleave", mouseLeaveStationHandler)
     .on("mousemove", mouseMoveStationHandler)
     .transition()
     .duration(200)
-    .attr("fill", (d) => color(d["count"]));
+    .attr("fill", (d) =>
+      color(stations.find((s) => s.name === d.name)["total_trips"])
+    );
 }
 
 export function resetBlueBikeStations() {
