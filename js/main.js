@@ -17,6 +17,7 @@ import {
   resetBlueBikeStations,
   renderConnections,
   renderMapToolTip,
+  clearConnectionsContainer,
 } from "./renderMap.js";
 import { projectCoordinates } from "./dataTransformation.js";
 import renderMetaDataContainer, {
@@ -24,6 +25,7 @@ import renderMetaDataContainer, {
   clearMetaDataContainer,
   highlightBar,
   configureMetadataControls,
+  resetHighlight,
 } from "./renderMetadata.js";
 
 // ------ Constants ------
@@ -78,6 +80,7 @@ const visController = async () => {
       stations: selectedStationData,
       selectStationCallback,
       mouseEnterStationCallback,
+      mouseLeaveStationCallback,
     });
     selectStationCallback(selectedStationName);
   }, 500);
@@ -120,7 +123,11 @@ const visController = async () => {
   // Callback function for when a metadata bar is hovered
   const mouseEnterMetadataCallback = (hoveredStation) => {
     highlightBar(hoveredStation);
-    renderConnections(selectedStationName, [hoveredStation]);
+    renderConnections({
+      startStation: selectedStationName,
+      endStations: [hoveredStation],
+      scaleValue: zoomScale,
+    });
   };
 
   // Callback function for when a station is selected
@@ -169,7 +176,18 @@ const visController = async () => {
     highlightBar(d.name);
 
     if (selectedStationName && selectedStationName !== d.name) {
-      renderConnections(selectedStationName, [d.name]);
+      renderConnections({
+        startStation: selectedStationName,
+        endStations: [d.name],
+        scaleValue: zoomScale,
+      });
+    }
+  };
+
+  const mouseLeaveStationCallback = (_e, d) => {
+    if (selectedStationName && selectedStationName !== d.name) {
+      resetHighlight(d.name);
+      clearConnectionsContainer();
     }
   };
 
@@ -191,6 +209,7 @@ const visController = async () => {
     stations: selectedStationData,
     selectStationCallback,
     mouseEnterStationCallback,
+    mouseLeaveStationCallback,
   });
   renderMapToolTip();
   renderMetaDataContainer();

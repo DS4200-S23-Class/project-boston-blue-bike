@@ -1,4 +1,4 @@
-import { renderConnections, clearConnectionsContainer } from "./renderMap.js";
+import { clearConnectionsContainer } from "./renderMap.js";
 
 // --------------- Constants ---------------
 const MARGINS = { top: 10, right: 10, bottom: 20, left: 65 };

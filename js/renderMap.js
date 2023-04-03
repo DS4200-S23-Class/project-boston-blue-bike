@@ -9,8 +9,6 @@ const MIN_STATION_SIZE = 1.25;
 const MAX_STATION_BORDER = 1;
 const MIN_STATION_BORDER = 0.1;
 
-let GLOBAL_K = 1;
-
 // --------------- Event handlers ---------------
 export const debouncedStationResize = debounce((zoomScale) => {
   d3.select('g[data-container="stations"]')
@@ -27,17 +25,10 @@ export const debouncedStationResize = debounce((zoomScale) => {
 export function renderMapContainer({ zoomCallback }) {
   const zoomHandler = (e) => {
     g.attr("transform", e.transform);
-    GLOBAL_K = e.transform.k;
-    zoomCallback(GLOBAL_K);
+    zoomCallback(e.transform.k);
   };
 
   const zoom = d3.zoom().scaleExtent(ZOOM_THRESHOLD).on("zoom", zoomHandler);
-
-  // --------------- Prep Map container ---------------
-  d3.select("#boston-map").on("selectday", (e) => {
-    characterizeBlueBikeStations(e.detail.days, e.detail.stationMatrix);
-    d3.select("circle.selected").dispatch("click");
-  });
 
   // --------------- Prep SVG ---------------
   const svg = d3
@@ -98,6 +89,7 @@ export const characterizeBlueBikeStations = async ({
   stations,
   selectStationCallback,
   mouseEnterStationCallback,
+  mouseLeaveStationCallback,
 }) => {
   // Event handlers
   const mouseEnterStationHandler = (e, d) => {
@@ -114,14 +106,13 @@ export const characterizeBlueBikeStations = async ({
     selectStationCallback(d.name);
   };
 
-  const mouseLeaveStationHandler = (_e, d) => {
+  const mouseLeaveStationHandler = (_e, _d) => {
     d3.select("#map-tooltip")
       .style("opacity", 0)
       .style("left", `0`)
       .style("top", `0`);
 
-    resetHighlight(d.name);
-    clearConnectionsContainer();
+    mouseLeaveStationCallback(_e, _d);
   };
 
   const mouseMoveStationHandler = (e, d) => {
@@ -188,7 +179,7 @@ export function filterBlueBikeStations(keepStations) {
     .transition();
 }
 
-export function renderConnections(startStation, endStations) {
+export function renderConnections({ startStation, endStations, scaleValue }) {
   const connectionContainer = d3.select('g[data-container="connections"]');
 
   if (typeof startStation === "string") {
@@ -204,7 +195,7 @@ export function renderConnections(startStation, endStations) {
       startStation.projectedLatitude,
       c.projectedLongitude,
       c.projectedLatitude,
-      scaleZoom(GLOBAL_K, MAX_STATION_SIZE, MIN_STATION_SIZE)
+      scaleZoom(scaleValue, MAX_STATION_SIZE, MIN_STATION_SIZE)
     );
     connectionContainer
       .append("line")
@@ -232,14 +223,3 @@ export function renderMapToolTip() {
     .attr("class", "tooltip")
     .style("opacity", 0);
 }
-
-// Draw neighborhoods of Boston
-const renderMap = async () => {
-  renderBostonRegions();
-  renderBlueBikeStationsContainer();
-  renderBlueBikeStations(GLOBAL_K);
-  characterizeBlueBikeStations([], await getTripMatrix("total"));
-  renderMapToolTip();
-};
-
-export default renderMap;
