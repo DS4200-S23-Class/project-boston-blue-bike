@@ -1,5 +1,3 @@
-import { getTripMatrix, getManyTripMatrices } from "./dataLoad.js";
-import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
 const MARGINS = { top: 25, right: 50, bottom: 25, left: 5 };
