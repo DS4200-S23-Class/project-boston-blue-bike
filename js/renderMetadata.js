@@ -27,27 +27,12 @@ function renderMetaDataContainer() {
     .attr("class", "tooltip");
 }
 
-function clearMetaDataContainer() {
+export function clearMetaDataContainer() {
   d3.select("#meta-bars").selectAll("*").remove();
   d3.select("#meta-axis").selectAll("*").remove();
 }
 
-export function resetMetaData() {
-  clearMetaDataContainer();
-  GLOBAL_STATION = null;
-}
-
 export function characterizeMetadata(stationData, stationName) {
-  if (stationName) {
-    GLOBAL_STATION = stationName;
-  } else {
-    stationName = GLOBAL_STATION;
-  }
-
-  if (!stationName) {
-    return;
-  }
-
   const renderBar = (tripArray) => {
     const data = tripArray.filter(([name, _count]) => name !== stationName);
 
