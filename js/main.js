@@ -37,6 +37,7 @@ const PROJECTION = d3
   .scale(90000)
   .translate([WIDTH / 4, HEIGHT / 2]);
 
+// The brain of the visualization. Controls interactions across views and manages all of the state
 const visController = async () => {
   // ------ State ------
   const selectedDays = [];

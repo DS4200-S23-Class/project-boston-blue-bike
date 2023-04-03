@@ -1,6 +1,5 @@
-import { geoJson, getTripMatrix } from "./dataLoad.js";
+import { geoJson } from "./dataLoad.js";
 import { debounce, scaleZoom, calcOffset, createScale } from "./utils.js";
-import { resetHighlight } from "./renderMetadata.js";
 
 // --------------- Constants ---------------
 const ZOOM_THRESHOLD = [1, 7];
