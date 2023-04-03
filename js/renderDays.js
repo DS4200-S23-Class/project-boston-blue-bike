@@ -1,4 +1,4 @@
-import { tripsByDay, getTripMatrix, getManyTripMatrices } from "./dataLoad.js";
+import { getTripMatrix, getManyTripMatrices } from "./dataLoad.js";
 import { debounce } from "./utils.js";
 // --------------- Constants ---------------
 
@@ -7,14 +7,24 @@ const HORIZONTAL_OFFSET = 50;
 const SQUARE_LENGTH = 30;
 const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
-// --------------- Prep SVG ---------------
-const svg = d3
-  .select("#day-container")
-  .append("svg")
-  .attr("width", 7 * HORIZONTAL_OFFSET)
-  .attr("height", "100%");
+// --------------- Helper Functions ---------------
+export const updateDayBorder = (day) => {
+  const svg = d3.select(`rect[data-day="${day}"]`);
+  // If the day is already selected, unselect it
+  if (svg.attr("stroke") === "lightgreen") {
+    svg.attr("stroke", "black");
+  } else {
+    svg.attr("stroke", "lightgreen");
+  }
+};
 
-const renderDays = () => {
+// --------------- Prep SVG ---------------
+const renderDays = ({ tripsByDay, selectDayCallback }) => {
+  const svg = d3
+    .select("#day-container")
+    .append("svg")
+    .attr("width", 7 * HORIZONTAL_OFFSET)
+    .attr("height", "100%");
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
   let MEAN_TRIP_DAY = 0;
   tripsByDay.forEach((val) => {
@@ -26,18 +36,6 @@ const renderDays = () => {
     .scaleLinear()
     .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
     .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
-  const selectedDays = [];
-
-  const selectDay = debounce(async () => {
-    const matrix =
-      !!selectedDays && selectedDays.length > 0
-        ? await getManyTripMatrices(selectedDays)
-        : await getTripMatrix("total");
-
-    d3.select("#boston-map").dispatch("selectday", {
-      detail: { days: selectedDays, stationMatrix: matrix },
-    });
-  }, 500);
 
   DAYS.forEach((day, index) => {
     svg
@@ -59,20 +57,10 @@ const renderDays = () => {
       .attr("stroke", "black")
       .attr("stroke-width", 4)
       .attr("fill", color(tripsByDay.get(i)))
+      .attr("data-day", i)
       .style("cursor", "pointer")
-      .on("click", (e) => {
-        const rect = e.target;
-        if (selectedDays.includes(i)) {
-          selectedDays.splice(
-            selectedDays.findIndex((_i) => i === _i),
-            1
-          );
-          rect.setAttribute("stroke", "black");
-        } else {
-          selectedDays.push(i);
-          rect.setAttribute("stroke", "lightgreen");
-        }
-        selectDay();
+      .on("click", (_e) => {
+        selectDayCallback(i);
       });
   }
 };
