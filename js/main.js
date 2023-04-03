@@ -23,6 +23,7 @@ import renderMetaDataContainer, {
   characterizeMetadata,
   clearMetaDataContainer,
   highlightBar,
+  configureMetadataControls,
 } from "./renderMetadata.js";
 
 // ------ Constants ------
@@ -81,43 +82,6 @@ const visController = async () => {
     selectStationCallback(selectedStationName);
   }, 500);
 
-  const configureMetadataControls = (stationsByTripCount) => {
-    d3.select("#select-text").attr("class", "no-display");
-    d3.select("#controls").attr("class", "");
-
-    // Find limits for the metadata threshold
-    const mean = Math.floor(
-      d3.mean(stationsByTripCount, ([name, count]) =>
-        name !== selectedStationName ? count : 0
-      )
-    );
-    const max = Math.floor(
-      d3.max(stationsByTripCount, ([name, count]) =>
-        name !== selectedStationName ? count : 0
-      )
-    );
-    // Configure the metadata threshold
-    const metaInput = d3.select("#meta-threshold");
-    d3.select("#meta-threshold-value").text(mean);
-    metaInput.property("value", mean);
-    metaInput.property("max", max);
-    metaInput.property("min", 1);
-    metaInput.on("input", (e, _d) => {
-      d3.select("#meta-threshold-value").text(e.target.value);
-    });
-    metaInput.on("change", (e, _d) => {
-      const data = stationsByTripCount.filter(
-        ([name, count]) =>
-          parseInt(count) >= e.target.value && name !== selectedStationName
-      );
-      characterizeMetadata(data, selectedStationName);
-      filterBlueBikeStations([
-        selectedStationName,
-        ...data.map(([name, _count]) => name),
-      ]);
-    });
-  };
-
   // ------ Callbacks ------
 
   // Callback function for when a day is selected
@@ -136,6 +100,30 @@ const visController = async () => {
     reCharacterizeStations();
   };
 
+  // Callback function for when metadata control is updated
+  const changeMetadataControlCallback = (e, _d, stationsByTripCount) => {
+    const data = stationsByTripCount.filter(
+      ([name, count]) =>
+        parseInt(count) >= e.target.value && name !== selectedStationName
+    );
+    characterizeMetadata({
+      stationData: data,
+      stationName: selectedStationName,
+      overCallback: mouseEnterMetadataCallback,
+    });
+    filterBlueBikeStations([
+      selectedStationName,
+      ...data.map(([name, _count]) => name),
+    ]);
+  };
+
+  // Callback function for when a metadata bar is hovered
+  const mouseEnterMetadataCallback = (hoveredStation) => {
+    highlightBar(hoveredStation);
+    renderConnections(selectedStationName, [hoveredStation]);
+  };
+
+  // Callback function for when a station is selected
   const selectStationCallback = (_selectedStationName) => {
     selectedStationName = _selectedStationName;
     if (!selectedStationName) return;
@@ -156,12 +144,21 @@ const visController = async () => {
         name !== selectedStationName ? count : 0
       )
     );
-    configureMetadataControls(stationsByTripCount);
+    configureMetadataControls({
+      selectedStationName,
+      stationsByTripCount,
+      changeCallback: (e, d) =>
+        changeMetadataControlCallback(e, d, stationsByTripCount),
+    });
 
     const data = stationsByTripCount.filter(
       ([name, count]) => parseInt(count) >= mean && name !== selectedStationName
     );
-    characterizeMetadata(data, selectedStationName);
+    characterizeMetadata({
+      stationData: data,
+      stationName: selectedStationName,
+      overCallback: mouseEnterMetadataCallback,
+    });
     filterBlueBikeStations([
       selectedStationName,
       ...data.map(([name, _count]) => name),
