@@ -153,7 +153,6 @@ export function resetBlueBikeStations() {
   stationContainer
     .selectAll("circle")
     .classed("no-events", false)
-    .classed("selected", false)
     .transition()
     .duration(200)
     .attr("opacity", 1);
