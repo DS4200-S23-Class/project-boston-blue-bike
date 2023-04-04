@@ -1,6 +1,7 @@
 // --------------- Constants ---------------
 
 const MARGINS = { top: 25, right: 50, bottom: 25, left: 5 };
+const HEIGHT = 220;
 const HORIZONTAL_OFFSET = 50;
 const SQUARE_LENGTH = 30;
 const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
@@ -22,7 +23,7 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
     .select("#day-container")
     .append("svg")
     .attr("width", 7 * HORIZONTAL_OFFSET)
-    .attr("height", "100%");
+    .attr("height", HEIGHT);
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
   let MEAN_TRIP_DAY = 0;
   tripsByDay.forEach((val) => {

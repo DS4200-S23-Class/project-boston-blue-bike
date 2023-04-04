@@ -27,7 +27,7 @@ h1 {
 
 #day-container {
   display: flex;
-  height: 30vh;
+  height: fit-content;
   justify-content: center;
 }
 
@@ -47,6 +47,7 @@ h1 {
   display: flex;
   align-items: center;
   flex-direction: column;
+  margin: 5px 0;
 }
 
 #selected-station-name {
