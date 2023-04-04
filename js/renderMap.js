@@ -89,6 +89,7 @@ export const characterizeBlueBikeStations = async ({
   selectStationCallback,
   mouseEnterStationCallback,
   mouseLeaveStationCallback,
+  mouseMoveStationCallback,
 }) => {
   // Event handlers
   const mouseEnterStationHandler = (e, d) => {
@@ -102,6 +103,8 @@ export const characterizeBlueBikeStations = async ({
   };
 
   const mouseClickStationHandler = (_e, d) => {
+    d3.selectAll("circle").style("cursor", "default");
+
     selectStationCallback(d.name);
   };
 
@@ -114,16 +117,8 @@ export const characterizeBlueBikeStations = async ({
     mouseLeaveStationCallback(_e, _d);
   };
 
-  const mouseMoveStationHandler = (e, d) => {
-    // position the tooltip and fill in information
-    d3.select("#map-tooltip")
-      .html(
-        `${d.name} Total trips: ${
-          stations.find((s) => s.name === d.name)["total_trips"]
-        }`
-      )
-      .style("left", `${e.pageX}px`)
-      .style("top", `${e.pageY - 50}px`);
+  const mouseMoveStationHandler = (_e, _d) => {
+    mouseMoveStationCallback(_e, _d);
   };
 
   const MEAN_TRIPS = d3.mean(stations, (d) => parseInt(d["total_trips"]));
@@ -164,6 +159,7 @@ export function resetBlueBikeStations() {
     .attr("opacity", 1);
 
   d3.select("#controls").attr("class", "no-display");
+  d3.selectAll("circle").style("cursor", "pointer");
 }
 
 export function filterBlueBikeStations(keepStations) {

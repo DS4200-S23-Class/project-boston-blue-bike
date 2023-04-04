@@ -82,6 +82,7 @@ const visController = async () => {
       selectStationCallback,
       mouseEnterStationCallback,
       mouseLeaveStationCallback,
+      mouseMoveStationCallback,
     });
     selectStationCallback(selectedStationName);
   }, 500);
@@ -133,6 +134,7 @@ const visController = async () => {
 
   // Callback function for when a station is selected
   const selectStationCallback = (_selectedStationName) => {
+    if (selectedStationName) return;
     selectedStationName = _selectedStationName;
     if (!selectedStationName) return;
 
@@ -192,6 +194,19 @@ const visController = async () => {
     }
   };
 
+  const mouseMoveStationCallback = (e, d) => {
+    // position the tooltip and fill in information
+    const count =
+      selectedStationName && selectedStationName !== d.name
+        ? d3.select(`rect[data-station="${d.name}"]`).data()[0][1]
+        : selectedStationData.find((s) => s.name === d.name)["total_trips"];
+
+    d3.select("#map-tooltip")
+      .html(`${d.name} Total trips: ${count}`)
+      .style("left", `${e.pageX}px`)
+      .style("top", `${e.pageY - 50}px`);
+  };
+
   // Callback function for when the map is zoomed
   const zoomCallback = (newScale) => {
     zoomScale = newScale;
@@ -211,6 +226,7 @@ const visController = async () => {
     selectStationCallback,
     mouseEnterStationCallback,
     mouseLeaveStationCallback,
+    mouseMoveStationCallback,
   });
   renderMapToolTip();
   renderMetaDataContainer();
