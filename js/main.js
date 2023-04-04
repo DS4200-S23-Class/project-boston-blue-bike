@@ -142,6 +142,7 @@ const visController = async () => {
       "stroke",
       "orange"
     );
+    d3.select("#selected-station-name").text(selectedStationName);
 
     // STEP 1 - Aggregate the data
     // Find index of station in stationMatrix

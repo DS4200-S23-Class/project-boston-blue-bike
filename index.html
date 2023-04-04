@@ -73,9 +73,16 @@
           <div id="day-container"></div>
           <div id="region2">
             <div id="controls" class="no-display">
-              <input type="range" id="meta-threshold" />
-              <span id="meta-threshold-value"></span>
-              <button id="clear-selection">Reset Station Selection</button>
+              <div>
+                <p id="selected-station-name"></p>
+                <p id="min-trip-prefix">- min trips:</p>
+                <span id="meta-threshold-value"></span>
+              </div>
+              <div>
+                <input type="range" id="meta-threshold" />
+
+                <button id="clear-selection">Reset Station Selection</button>
+              </div>
             </div>
             <div id="select-text">Select a station</div>
             <div id="meta-container"></div>

@@ -2,8 +2,8 @@ import { clearConnectionsContainer } from "./renderMap.js";
 
 // --------------- Constants ---------------
 const MARGINS = { top: 10, right: 10, bottom: 20, left: 65 };
-const HEIGHT = 640;
-const WIDTH = 600;
+const HEIGHT = window.innerHeight - window.innerHeight * 0.4;
+const WIDTH = (window.innerWidth - window.innerWidth * 0.3) / 2;
 const VIS_HEIGHT = HEIGHT - MARGINS.top - MARGINS.bottom;
 const VIS_WIDTH = WIDTH - MARGINS.left - MARGINS.right;
 
