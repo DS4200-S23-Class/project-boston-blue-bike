@@ -1,6 +1,7 @@
 // --------------- Constants ---------------
 
 const MARGINS = { top: 25, right: 50, bottom: 25, left: 5 };
+const HEIGHT = 220;
 const HORIZONTAL_OFFSET = 50;
 const SQUARE_LENGTH = 30;
 const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
@@ -22,7 +23,7 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
     .select("#day-container")
     .append("svg")
     .attr("width", 7 * HORIZONTAL_OFFSET)
-    .attr("height", "100%");
+    .attr("height", HEIGHT);
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
   let MEAN_TRIP_DAY = 0;
   tripsByDay.forEach((val) => {
@@ -33,7 +34,7 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
   const color = d3
     .scaleLinear()
     .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
-    .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
+    .range(["white", "darkorange"]);
 
   DAYS.forEach((day, index) => {
     svg
@@ -56,6 +57,39 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("stroke-width", 4)
       .attr("fill", color(tripsByDay.get(i)))
       .attr("data-day", i)
+      .style("cursor", "pointer")
+      .on("click", (_e) => {
+        selectDayCallback(i);
+      });
+    // add smaller rect in top right corner of rect
+    svg
+      .append("rect")
+      .attr(
+        "x",
+        (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET + MARGINS.left - 2
+      )
+      .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top - 2)
+      .attr("width", SQUARE_LENGTH / 2)
+      .attr("height", SQUARE_LENGTH / 2)
+      .attr("fill", "rgb(235, 235, 235)")
+      .style("cursor", "pointer")
+      .on("click", (_e) => {
+        selectDayCallback(i);
+      });
+
+    // add text to smaller rect
+    svg
+      .append("text")
+      .html(i)
+      .attr(
+        "x",
+        (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET +
+          MARGINS.left +
+          (i > 9 ? -1 : 3)
+      )
+      .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top + 10)
+      .attr("font-size", "12px")
+      .attr("fill", "black")
       .style("cursor", "pointer")
       .on("click", (_e) => {
         selectDayCallback(i);

@@ -18,6 +18,7 @@ h1 {
   width: 50%;
   border: 1px solid black;
   margin: auto;
+  background-color: #add8e6;
 }
 
 .info-col {
@@ -26,7 +27,7 @@ h1 {
 
 #day-container {
   display: flex;
-  height: 30vh;
+  height: fit-content;
   justify-content: center;
 }
 
@@ -40,6 +41,22 @@ h1 {
   font-size: 30px;
   display: flex;
   justify-content: center;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: 5px 0;
+}
+
+#selected-station-name {
+  display: inline;
+  font-weight: bold;
+}
+
+#min-trip-prefix {
+  display: inline;
 }
 
 .tooltip {

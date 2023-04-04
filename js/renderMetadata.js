@@ -2,8 +2,8 @@ import { clearConnectionsContainer } from "./renderMap.js";
 
 // --------------- Constants ---------------
 const MARGINS = { top: 10, right: 10, bottom: 20, left: 65 };
-const HEIGHT = 640;
-const WIDTH = 600;
+const HEIGHT = window.innerHeight - 300;
+const WIDTH = window.innerWidth * 0.35;
 const VIS_HEIGHT = HEIGHT - MARGINS.top - MARGINS.bottom;
 const VIS_WIDTH = WIDTH - MARGINS.left - MARGINS.right;
 
@@ -102,7 +102,7 @@ export function characterizeMetadata({
     .on("mouseleave", mouseleave)
     .on("mousemove", mousemove)
     .transition()
-    .duration(500)
+    .duration(300)
     .attr("y", ([_name, count]) => Y_SCALE(count) + MARGINS.top)
     .attr("height", ([_name, count]) => VIS_HEIGHT - Y_SCALE(count));
 
@@ -118,6 +118,27 @@ export function characterizeMetadata({
     .attr("transform", `translate(${MARGINS.left},${MARGINS.top})`)
     .call(d3.axisLeft(Y_SCALE).ticks(10))
     .attr("font-size", "10px");
+
+  // Add axis labels
+  axis
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 20)
+    .attr("x", 0 - VIS_HEIGHT / 2)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Number of Trips");
+
+  axis
+    .append("text")
+    .attr(
+      "transform",
+      `translate(${VIS_WIDTH / 2 + MARGINS.left}, ${
+        VIS_HEIGHT + MARGINS.top + 20
+      })`
+    )
+    .style("text-anchor", "middle")
+    .text("Station");
 }
 
 export function highlightBar(stationName) {
