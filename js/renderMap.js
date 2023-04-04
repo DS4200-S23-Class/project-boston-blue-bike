@@ -90,6 +90,7 @@ export const characterizeBlueBikeStations = async ({
   mouseEnterStationCallback,
   mouseLeaveStationCallback,
   mouseMoveStationCallback,
+  getSelectedStation,
 }) => {
   // Event handlers
   const mouseEnterStationHandler = (e, d) => {
@@ -103,8 +104,8 @@ export const characterizeBlueBikeStations = async ({
   };
 
   const mouseClickStationHandler = (_e, d) => {
+    if (getSelectedStation()) return;
     d3.selectAll("circle").style("cursor", "default");
-
     selectStationCallback(d.name);
   };
 
@@ -153,6 +154,7 @@ export function resetBlueBikeStations() {
   stationContainer
     .selectAll("circle")
     .classed("no-events", false)
+    .attr("stroke", "black")
     .transition()
     .duration(200)
     .attr("opacity", 1);

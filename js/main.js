@@ -83,6 +83,7 @@ const visController = async () => {
       mouseEnterStationCallback,
       mouseLeaveStationCallback,
       mouseMoveStationCallback,
+      getSelectedStation: () => selectedStationName,
     });
     selectStationCallback(selectedStationName);
   }, 500);
@@ -134,9 +135,13 @@ const visController = async () => {
 
   // Callback function for when a station is selected
   const selectStationCallback = (_selectedStationName) => {
-    if (selectedStationName) return;
     selectedStationName = _selectedStationName;
     if (!selectedStationName) return;
+
+    d3.select(`circle[data-station-name="${selectedStationName}"]`).attr(
+      "stroke",
+      "orange"
+    );
 
     // STEP 1 - Aggregate the data
     // Find index of station in stationMatrix
@@ -227,6 +232,7 @@ const visController = async () => {
     mouseEnterStationCallback,
     mouseLeaveStationCallback,
     mouseMoveStationCallback,
+    getSelectedStation: () => selectedStationName,
   });
   renderMapToolTip();
   renderMetaDataContainer();
