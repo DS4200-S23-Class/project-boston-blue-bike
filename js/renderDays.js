@@ -34,7 +34,7 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
   const color = d3
     .scaleLinear()
     .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
-    .range(["white", "blue"]);
+    .range(["white", "darkorange"]);
 
   DAYS.forEach((day, index) => {
     svg

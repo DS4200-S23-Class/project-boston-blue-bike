@@ -20,8 +20,6 @@ export const [geoJson, massMapJson, massWaterJson, blueBikeStations] =
     blueBikeStationsRequest,
   ]);
 
-console.log(blueBikeStations);
-
 // Represents the trips taken each day of the month. Index corresponds to day - 1.
 export const tripsByDay = new Map();
 blueBikeStations.forEach((station) => {
