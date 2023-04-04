@@ -119,6 +119,7 @@ export function characterizeMetadata({
     .call(d3.axisLeft(Y_SCALE).ticks(10))
     .attr("font-size", "10px");
 
+  // Add axis labels
   axis
     .append("text")
     .attr("transform", "rotate(-90)")

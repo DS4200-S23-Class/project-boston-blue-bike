@@ -34,7 +34,7 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
   const color = d3
     .scaleLinear()
     .domain([MIN_TRIP_DAY, MAX_TRIP_DAY])
-    .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
+    .range(["white", "blue"]);
 
   DAYS.forEach((day, index) => {
     svg
@@ -57,6 +57,39 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("stroke-width", 4)
       .attr("fill", color(tripsByDay.get(i)))
       .attr("data-day", i)
+      .style("cursor", "pointer")
+      .on("click", (_e) => {
+        selectDayCallback(i);
+      });
+    // add smaller rect in top right corner of rect
+    svg
+      .append("rect")
+      .attr(
+        "x",
+        (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET + MARGINS.left - 2
+      )
+      .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top - 2)
+      .attr("width", SQUARE_LENGTH / 2)
+      .attr("height", SQUARE_LENGTH / 2)
+      .attr("fill", "rgb(235, 235, 235)")
+      .style("cursor", "pointer")
+      .on("click", (_e) => {
+        selectDayCallback(i);
+      });
+
+    // add text to smaller rect
+    svg
+      .append("text")
+      .html(i)
+      .attr(
+        "x",
+        (numericalDayOfWeek % 7) * HORIZONTAL_OFFSET +
+          MARGINS.left +
+          (i > 9 ? -1 : 3)
+      )
+      .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top + 10)
+      .attr("font-size", "12px")
+      .attr("fill", "black")
       .style("cursor", "pointer")
       .on("click", (_e) => {
         selectDayCallback(i);
