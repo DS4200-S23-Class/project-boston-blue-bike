@@ -5,7 +5,13 @@ import {
   getManyTripMatrices,
   blueBikeStations,
 } from "./dataLoad.js";
-import { debounce, getColAsObj, orderRow, mergeObj } from "./utils.js";
+import {
+  debounce,
+  getColAsObj,
+  orderRow,
+  mergeObj,
+  orderRowAlphabetical,
+} from "./utils.js";
 import {
   characterizeBlueBikeStations,
   debouncedStationResize,
@@ -51,12 +57,31 @@ const visController = async () => {
     "longitude"
   );
   let selectedStationData = projectedStations;
+  let orderBy = "count";
 
   // Configure event handlers
   d3.select("#clear-selection").on("click", () => {
     selectedStationName = null;
     resetBlueBikeStations();
     clearMetaDataContainer();
+  });
+
+  d3.select("#order-by").on("click", () => {
+    if (orderBy === "count") {
+      orderBy = "name";
+    } else {
+      orderBy = "count";
+    }
+    const minCount = parseInt(d3.select("#meta-threshold-value").html());
+    const stations = orderStationsByTripCountBetweenStations();
+    characterizeMetadata({
+      stationData: stations.filter(
+        ([name, count]) => name !== selectedStationName && count >= minCount
+      ),
+      stationName: selectedStationName,
+      overCallback: mouseEnterMetadataCallback,
+    });
+    d3.select("#order-by").text(`Order by: ${orderBy}`);
   });
 
   // Debounced function to recharacterize stations
@@ -88,6 +113,25 @@ const visController = async () => {
     selectStationCallback(selectedStationName);
   }, 500);
 
+  // ------ Helper ------
+
+  const orderStationsByTripCountBetweenStations = () => {
+    // Find index of station in stationMatrix
+    const stationIndex = stationMatrix.findIndex(
+      (_station) => _station["from_station"] === selectedStationName
+    );
+    // Get column of matrix as object
+    const stationCol = getColAsObj(stationMatrix, selectedStationName);
+    // Order stations by most total trips between the desired station
+    if (orderBy === "count") {
+      return orderRow(mergeObj(stationCol, stationMatrix[stationIndex]));
+    } else {
+      return orderRowAlphabetical(
+        mergeObj(stationCol, stationMatrix[stationIndex])
+      );
+    }
+  };
+
   // ------ Callbacks ------
 
   // Callback function for when a day is selected
@@ -107,11 +151,12 @@ const visController = async () => {
   };
 
   // Callback function for when metadata control is updated
-  const changeMetadataControlCallback = (e, _d, stationsByTripCount) => {
-    const data = stationsByTripCount.filter(
+  const changeMetadataControlCallback = (e, _d) => {
+    const data = orderStationsByTripCountBetweenStations().filter(
       ([name, count]) =>
         parseInt(count) >= e.target.value && name !== selectedStationName
     );
+
     characterizeMetadata({
       stationData: data,
       stationName: selectedStationName,
@@ -144,16 +189,8 @@ const visController = async () => {
     );
     d3.select("#selected-station-name").text(selectedStationName);
 
-    // STEP 1 - Aggregate the data
-    // Find index of station in stationMatrix
-    const stationIndex = stationMatrix.findIndex(
-      (_station) => _station["from_station"] === selectedStationName
-    );
-    const stationCol = getColAsObj(stationMatrix, selectedStationName);
     // Order stations by most total trips between the desired station
-    const stationsByTripCount = orderRow(
-      mergeObj(stationCol, stationMatrix[stationIndex])
-    );
+    const stationsByTripCount = orderStationsByTripCountBetweenStations();
 
     const mean = Math.floor(
       d3.mean(stationsByTripCount, ([name, count]) =>
@@ -163,8 +200,7 @@ const visController = async () => {
     configureMetadataControls({
       selectedStationName,
       stationsByTripCount,
-      changeCallback: (e, d) =>
-        changeMetadataControlCallback(e, d, stationsByTripCount),
+      changeCallback: changeMetadataControlCallback,
     });
 
     const data = stationsByTripCount.filter(

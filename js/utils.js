@@ -102,6 +102,19 @@ export const orderRow = (data) => {
 };
 
 /**
+ * Does the same thing as findMaxRow but returns the entire row and sorts alphabetically
+ */
+export const orderRowAlphabetical = (data) => {
+  const val = data["from_station"];
+  return Object.entries(data)
+    .filter(
+      ([name, count]) =>
+        name !== val && name !== "from_station" && parseInt(count) > 0
+    )
+    .sort(([nameA, _countA], [nameB, _countB]) => nameA.localeCompare(nameB));
+};
+
+/**
  * Convert the col of a 2D array into an object
  * @param {number[][]} data the data to convert
  * @param {string} col the column to convert
