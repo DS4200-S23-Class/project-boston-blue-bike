@@ -8,12 +8,19 @@ const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
 // --------------- Helper Functions ---------------
 export const updateDayBorder = (day) => {
-  const svg = d3.select(`rect[data-day="${day}"]`);
+  const container = d3.select(`rect[data-day="${day}"]`);
+  const containerSmall = d3.select(`rect[data-day-small="${day}"]`);
+  const containerText = d3.select(`text[data-day-text="${day}"]`);
+
   // If the day is already selected, unselect it
-  if (svg.attr("stroke") === "lightgreen") {
-    svg.attr("stroke", "black");
+  if (container.attr("stroke") === "lightgreen") {
+    container.attr("stroke", "black");
+    containerSmall.attr("fill", "black");
+    containerText.attr("fill", "white");
   } else {
-    svg.attr("stroke", "lightgreen");
+    container.attr("stroke", "lightgreen");
+    containerSmall.attr("fill", "lightgreen");
+    containerText.attr("fill", "black");
   }
 };
 
@@ -71,7 +78,8 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top - 2)
       .attr("width", SQUARE_LENGTH / 2)
       .attr("height", SQUARE_LENGTH / 2)
-      .attr("fill", "rgb(235, 235, 235)")
+      .attr("fill", "black")
+      .attr("data-day-small", i)
       .style("cursor", "pointer")
       .on("click", (_e) => {
         selectDayCallback(i);
@@ -89,7 +97,8 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       )
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top + 10)
       .attr("font-size", "12px")
-      .attr("fill", "black")
+      .attr("fill", "white")
+      .attr("data-day-text", i)
       .style("cursor", "pointer")
       .on("click", (_e) => {
         selectDayCallback(i);

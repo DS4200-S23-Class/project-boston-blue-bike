@@ -169,10 +169,7 @@ export function filterBlueBikeStations(keepStations) {
   stationContainer
     .selectAll("circle")
     .classed("no-events", (d) => !keepStations.includes(d.name))
-    .transition()
-    .duration(200)
-    .attr("opacity", (d) => (keepStations.includes(d.name) ? 1 : 0))
-    .transition();
+    .attr("opacity", (d) => (keepStations.includes(d.name) ? 1 : 0));
 }
 
 export function renderConnections({ startStation, endStations, scaleValue }) {
