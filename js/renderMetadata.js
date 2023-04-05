@@ -51,7 +51,7 @@ export function characterizeMetadata({
   const Y_SCALE = d3.scaleLinear().domain([0, MAX_Y]).range([VIS_HEIGHT, 0]);
 
   const color = d3
-    .scaleLinear()
+    .scaleLog()
     .domain([MIN_Y, MAX_Y])
     .range(["rgb(27, 82, 175)", "rgb(215, 149, 91)"]);
 
