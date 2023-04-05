@@ -64,7 +64,7 @@ export function characterizeMetadata({
     d3.select("#meta-tooltip")
       .style("opacity", 1)
       .style("left", `${e.pageX + 10}px`)
-      .style("top", `${e.pageY + 10}px`)
+      .style("top", `${e.pageY - 30}px`)
       .html(`${name}: ${count}`);
     overCallback(name);
   };
@@ -82,7 +82,7 @@ export function characterizeMetadata({
   const mousemove = (e, _d) => {
     d3.select("#meta-tooltip")
       .style("left", `${e.pageX + 10}px`)
-      .style("top", `${e.pageY + 10}px`);
+      .style("top", `${e.pageY - 30}px`);
   };
 
   // Render the actual bars

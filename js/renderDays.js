@@ -31,6 +31,11 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
     .append("svg")
     .attr("width", 7 * HORIZONTAL_OFFSET)
     .attr("height", HEIGHT);
+  const dayToolTip = d3
+    .select("#day-container")
+    .append("div")
+    .attr("id", "day-tooltip")
+    .attr("class", "tooltip");
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
   let MEAN_TRIP_DAY = 0;
   tripsByDay.forEach((val) => {
@@ -65,6 +70,21 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("fill", color(tripsByDay.get(i)))
       .attr("data-day", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });
