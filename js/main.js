@@ -5,7 +5,14 @@ import {
   getManyTripMatrices,
   blueBikeStations,
 } from "./dataLoad.js";
-import { debounce, getColAsObj, orderRow, mergeObj } from "./utils.js";
+import {
+  debounce,
+  getColAsObj,
+  orderRow,
+  mergeObj,
+  orderRowAlphabetical,
+  calcOffset,
+} from "./utils.js";
 import {
   characterizeBlueBikeStations,
   debouncedStationResize,
@@ -51,12 +58,31 @@ const visController = async () => {
     "longitude"
   );
   let selectedStationData = projectedStations;
+  let orderBy = "count";
 
   // Configure event handlers
   d3.select("#clear-selection").on("click", () => {
     selectedStationName = null;
     resetBlueBikeStations();
     clearMetaDataContainer();
+  });
+
+  d3.select("#order-by").on("click", () => {
+    if (orderBy === "count") {
+      orderBy = "name";
+    } else {
+      orderBy = "count";
+    }
+    const minCount = parseInt(d3.select("#meta-threshold-value").html());
+    const stations = orderStationsByTripCountBetweenStations();
+    characterizeMetadata({
+      stationData: stations.filter(
+        ([name, count]) => name !== selectedStationName && count >= minCount
+      ),
+      stationName: selectedStationName,
+      overCallback: mouseEnterMetadataCallback,
+    });
+    d3.select("#order-by").text(`Order by: ${orderBy}`);
   });
 
   // Debounced function to recharacterize stations
@@ -88,6 +114,25 @@ const visController = async () => {
     selectStationCallback(selectedStationName);
   }, 500);
 
+  // ------ Helper ------
+
+  const orderStationsByTripCountBetweenStations = () => {
+    // Find index of station in stationMatrix
+    const stationIndex = stationMatrix.findIndex(
+      (_station) => _station["from_station"] === selectedStationName
+    );
+    // Get column of matrix as object
+    const stationCol = getColAsObj(stationMatrix, selectedStationName);
+    // Order stations by most total trips between the desired station
+    if (orderBy === "count") {
+      return orderRow(mergeObj(stationCol, stationMatrix[stationIndex]));
+    } else {
+      return orderRowAlphabetical(
+        mergeObj(stationCol, stationMatrix[stationIndex])
+      );
+    }
+  };
+
   // ------ Callbacks ------
 
   // Callback function for when a day is selected
@@ -107,11 +152,12 @@ const visController = async () => {
   };
 
   // Callback function for when metadata control is updated
-  const changeMetadataControlCallback = (e, _d, stationsByTripCount) => {
-    const data = stationsByTripCount.filter(
+  const changeMetadataControlCallback = (e, _d) => {
+    const data = orderStationsByTripCountBetweenStations().filter(
       ([name, count]) =>
         parseInt(count) >= e.target.value && name !== selectedStationName
     );
+
     characterizeMetadata({
       stationData: data,
       stationName: selectedStationName,
@@ -144,16 +190,8 @@ const visController = async () => {
     );
     d3.select("#selected-station-name").text(selectedStationName);
 
-    // STEP 1 - Aggregate the data
-    // Find index of station in stationMatrix
-    const stationIndex = stationMatrix.findIndex(
-      (_station) => _station["from_station"] === selectedStationName
-    );
-    const stationCol = getColAsObj(stationMatrix, selectedStationName);
     // Order stations by most total trips between the desired station
-    const stationsByTripCount = orderRow(
-      mergeObj(stationCol, stationMatrix[stationIndex])
-    );
+    const stationsByTripCount = orderStationsByTripCountBetweenStations();
 
     const mean = Math.floor(
       d3.mean(stationsByTripCount, ([name, count]) =>
@@ -163,8 +201,7 @@ const visController = async () => {
     configureMetadataControls({
       selectedStationName,
       stationsByTripCount,
-      changeCallback: (e, d) =>
-        changeMetadataControlCallback(e, d, stationsByTripCount),
+      changeCallback: changeMetadataControlCallback,
     });
 
     const data = stationsByTripCount.filter(
@@ -207,10 +244,50 @@ const visController = async () => {
         ? d3.select(`rect[data-station="${d.name}"]`).data()[0][1]
         : selectedStationData.find((s) => s.name === d.name)["total_trips"];
 
+    const formatStationToolTip = () => {
+      if (selectedStationName && selectedStationName !== d.name) {
+        return `<p class="tooltip__header">${
+          d.name
+        }</p><p class="tooltip__content"><span class="tooltip__highlight">${count}</span> trip${
+          parseInt(count) !== 1 ? "s" : ""
+        } between ${selectedStationName}</p>`;
+      } else {
+        return `<p class="tooltip__header">${
+          d.name
+        }</p><p class="tooltip__content"><span class="tooltip__highlight">${count}</span> total trip${
+          parseInt(count) !== 1 ? "s" : ""
+        }</p>`;
+      }
+    };
+
+    let horizontalPosition = "right";
+    if (selectedStationName) {
+      const startStation = d3
+        .select(`circle[data-station-name="${selectedStationName}"]`)
+        .data()[0];
+      const c = d3.select(`circle[data-station-name="${d.name}"]`).data()[0];
+
+      const { offsetX } = calcOffset(
+        startStation.projectedLongitude,
+        startStation.projectedLatitude,
+        c.projectedLongitude,
+        c.projectedLatitude,
+        1
+      );
+      horizontalPosition = offsetX >= 0 ? "right" : "left";
+    }
+
     d3.select("#map-tooltip")
-      .html(`${d.name} Total trips: ${count}`)
-      .style("left", `${e.pageX}px`)
-      .style("top", `${e.pageY - 50}px`);
+      .html(formatStationToolTip())
+      .style("left", `${e.pageX + 30}px`)
+      .style("top", `${e.pageY - 30}px`);
+
+    if (horizontalPosition === "left") {
+      const tooltipWidth = document.querySelector("#map-tooltip").offsetWidth;
+      d3.select("#map-tooltip")
+        .style("left", `${e.pageX - tooltipWidth - 10}px`)
+        .style("top", `${e.pageY - 30}px`);
+    }
   };
 
   // Callback function for when the map is zoomed

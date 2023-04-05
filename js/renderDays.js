@@ -8,12 +8,19 @@ const DAYS = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
 // --------------- Helper Functions ---------------
 export const updateDayBorder = (day) => {
-  const svg = d3.select(`rect[data-day="${day}"]`);
+  const container = d3.select(`rect[data-day="${day}"]`);
+  const containerSmall = d3.select(`rect[data-day-small="${day}"]`);
+  const containerText = d3.select(`text[data-day-text="${day}"]`);
+
   // If the day is already selected, unselect it
-  if (svg.attr("stroke") === "lightgreen") {
-    svg.attr("stroke", "black");
+  if (container.attr("stroke") === "lightgreen") {
+    container.attr("stroke", "black");
+    containerSmall.attr("fill", "black");
+    containerText.attr("fill", "white");
   } else {
-    svg.attr("stroke", "lightgreen");
+    container.attr("stroke", "lightgreen");
+    containerSmall.attr("fill", "lightgreen");
+    containerText.attr("fill", "black");
   }
 };
 
@@ -24,6 +31,11 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
     .append("svg")
     .attr("width", 7 * HORIZONTAL_OFFSET)
     .attr("height", HEIGHT);
+  const dayToolTip = d3
+    .select("#day-container")
+    .append("div")
+    .attr("id", "day-tooltip")
+    .attr("class", "tooltip");
   const MAX_TRIP_DAY = Math.max(...tripsByDay.values());
   let MEAN_TRIP_DAY = 0;
   tripsByDay.forEach((val) => {
@@ -58,6 +70,21 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("fill", color(tripsByDay.get(i)))
       .attr("data-day", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });
@@ -71,8 +98,24 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top - 2)
       .attr("width", SQUARE_LENGTH / 2)
       .attr("height", SQUARE_LENGTH / 2)
-      .attr("fill", "rgb(235, 235, 235)")
+      .attr("fill", "black")
+      .attr("data-day-small", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });
@@ -89,8 +132,24 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       )
       .attr("y", Math.floor(numericalDayOfWeek / 7) * 40 + MARGINS.top + 10)
       .attr("font-size", "12px")
-      .attr("fill", "black")
+      .attr("fill", "white")
+      .attr("data-day-text", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });
