@@ -101,6 +101,21 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("fill", "black")
       .attr("data-day-small", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });
@@ -120,6 +135,21 @@ const renderDays = ({ tripsByDay, selectDayCallback }) => {
       .attr("fill", "white")
       .attr("data-day-text", i)
       .style("cursor", "pointer")
+      .on("mouseenter", (e) => {
+        dayToolTip
+          .style("opacity", 1)
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`)
+          .html(`${tripsByDay.get(i)} trips on Sept. ${i}`);
+      })
+      .on("mousemove", (e) => {
+        dayToolTip
+          .style("left", `${e.pageX + 10}px`)
+          .style("top", `${e.pageY - 10}px`);
+      })
+      .on("mouseleave", (_e) => {
+        dayToolTip.style("opacity", 0).style("left", "0px").style("top", "0px");
+      })
       .on("click", (_e) => {
         selectDayCallback(i);
       });

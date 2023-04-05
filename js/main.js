@@ -11,6 +11,7 @@ import {
   orderRow,
   mergeObj,
   orderRowAlphabetical,
+  calcOffset,
 } from "./utils.js";
 import {
   characterizeBlueBikeStations,
@@ -243,10 +244,50 @@ const visController = async () => {
         ? d3.select(`rect[data-station="${d.name}"]`).data()[0][1]
         : selectedStationData.find((s) => s.name === d.name)["total_trips"];
 
+    const formatStationToolTip = () => {
+      if (selectedStationName && selectedStationName !== d.name) {
+        return `<p class="tooltip__header">${
+          d.name
+        }</p><p class="tooltip__content"><span class="tooltip__highlight">${count}</span> trip${
+          parseInt(count) !== 1 ? "s" : ""
+        } between ${selectedStationName}</p>`;
+      } else {
+        return `<p class="tooltip__header">${
+          d.name
+        }</p><p class="tooltip__content"><span class="tooltip__highlight">${count}</span> total trip${
+          parseInt(count) !== 1 ? "s" : ""
+        }</p>`;
+      }
+    };
+
+    let horizontalPosition = "right";
+    if (selectedStationName) {
+      const startStation = d3
+        .select(`circle[data-station-name="${selectedStationName}"]`)
+        .data()[0];
+      const c = d3.select(`circle[data-station-name="${d.name}"]`).data()[0];
+
+      const { offsetX } = calcOffset(
+        startStation.projectedLongitude,
+        startStation.projectedLatitude,
+        c.projectedLongitude,
+        c.projectedLatitude,
+        1
+      );
+      horizontalPosition = offsetX >= 0 ? "right" : "left";
+    }
+
     d3.select("#map-tooltip")
-      .html(`${d.name} Total trips: ${count}`)
-      .style("left", `${e.pageX}px`)
-      .style("top", `${e.pageY - 50}px`);
+      .html(formatStationToolTip())
+      .style("left", `${e.pageX + 30}px`)
+      .style("top", `${e.pageY - 30}px`);
+
+    if (horizontalPosition === "left") {
+      const tooltipWidth = document.querySelector("#map-tooltip").offsetWidth;
+      d3.select("#map-tooltip")
+        .style("left", `${e.pageX - tooltipWidth - 10}px`)
+        .style("top", `${e.pageY - 30}px`);
+    }
   };
 
   // Callback function for when the map is zoomed

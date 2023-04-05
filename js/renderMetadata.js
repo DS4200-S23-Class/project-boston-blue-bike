@@ -61,11 +61,18 @@ export function characterizeMetadata({
   // Event handlers
   const mouseover = (e, d) => {
     const [name, count] = d;
+
+    const metaTooltipText = () => {
+      return `<p class="tooltip__header">${name}</p><p class="tooltip__content"><span class="tooltip__highlight">${count}</span> trip${
+        parseInt(count) !== 1 ? "s" : ""
+      } between ${stationName}</p>`;
+    };
+
     d3.select("#meta-tooltip")
       .style("opacity", 1)
       .style("left", `${e.pageX + 10}px`)
       .style("top", `${e.pageY - 30}px`)
-      .html(`${name}: ${count}`);
+      .html(metaTooltipText());
     overCallback(name);
   };
 

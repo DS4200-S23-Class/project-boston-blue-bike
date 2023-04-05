@@ -214,5 +214,6 @@ export function renderMapToolTip() {
     .append("div")
     .attr("id", "map-tooltip")
     .attr("class", "tooltip")
+    .style("pointer-events", "none")
     .style("opacity", 0);
 }
